@@ -1,5 +1,5 @@
 import { App, TFile, TFolder } from "obsidian";
-import { findFolderNote, getFolderByPath } from "./library";
+import { findFolderNote, getFolderByPath, isFolderNote, isHiddenCollectionFolder } from "./library";
 
 const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp", "bmp", "svg"]);
 
@@ -17,16 +17,43 @@ export function resolveItemCover(app: App, filePath: string): string | null {
 }
 
 export function resolveCollectionCover(app: App, folderPath: string): string | null {
+	return resolveCollectionCoverWalk(app, folderPath, new Set());
+}
+
+function resolveCollectionCoverWalk(app: App, folderPath: string, seen: Set<string>): string | null {
+	if (seen.has(folderPath)) return null;
+	seen.add(folderPath);
+
 	const folder = getFolderByPath(app, folderPath);
 	if (!folder) return null;
 
 	const note = findFolderNote(folder);
 	if (note) {
-		const fromNote = resolveItemCover(app, note.path);
+		const fromNote = coverFromFrontmatter(app, note) ?? coverFromEmbeds(app, note);
 		if (fromNote) return fromNote;
 	}
 
-	return firstImageInFolder(folder);
+	const fromFolderImage = firstImageInFolder(folder);
+	if (fromFolderImage) return fromFolderImage;
+
+	const children = [...folder.children].sort((a, b) =>
+		a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }),
+	);
+
+	for (const child of children) {
+		if (!(child instanceof TFolder) || isHiddenCollectionFolder(child.name)) continue;
+		const fromChild = resolveCollectionCoverWalk(app, child.path, seen);
+		if (fromChild) return fromChild;
+	}
+
+	for (const child of children) {
+		if (!(child instanceof TFile) || child.extension !== "md") continue;
+		if (isFolderNote(child, folder)) continue;
+		const fromItem = resolveItemCover(app, child.path);
+		if (fromItem) return fromItem;
+	}
+
+	return null;
 }
 
 function coverFromFrontmatter(app: App, file: TFile): string | null {

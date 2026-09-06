@@ -20,8 +20,33 @@ export function isPathInLibrary(path: string, libraryFolder: string): boolean {
 	return target === root || target.startsWith(`${root}/`);
 }
 
+const HIDDEN_COLLECTION_FOLDERS = new Set(["assets", "covers"]);
+
+export function isHiddenCollectionFolder(name: string): boolean {
+	return HIDDEN_COLLECTION_FOLDERS.has(name.toLowerCase());
+}
+
 export function isFolderNote(file: TFile, folder: TFolder): boolean {
 	return file.extension === "md" && file.basename === folder.name;
+}
+
+export function isParentCollection(folder: TFolder): boolean {
+	return folder.children.some(
+		(child) => child instanceof TFolder && !isHiddenCollectionFolder(child.name),
+	);
+}
+
+export function addToolbarMode(
+	folder: TFolder | null,
+	libraryFolder: string,
+): "create-folder" | "add-new" | "add-next" {
+	if (!folder) return "create-folder";
+	if (isParentCollection(folder)) return "add-new";
+	const atLibraryRoot =
+		normalizeFolderPath(folder.path === "/" ? "" : folder.path) ===
+		normalizeFolderPath(libraryFolder);
+	if (atLibraryRoot && listItemBasenames(folder).length === 0) return "add-new";
+	return "add-next";
 }
 
 export function findFolderNote(folder: TFolder): TFile | null {
@@ -70,6 +95,7 @@ export function listChildren(app: App, folder: TFolder): LibraryNode[] {
 
 	for (const child of children) {
 		if (child instanceof TFolder) {
+			if (isHiddenCollectionFolder(child.name)) continue;
 			nodes.push({ kind: "collection", name: child.name, path: child.path });
 			continue;
 		}

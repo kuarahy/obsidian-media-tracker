@@ -8,8 +8,9 @@ It is not in the Community plugin **Browse** store. You install it from this rep
 
 - A grid of collection cards (like image search results).
 - Click a collection to open the notes and nested folders inside it.
-- Each item card has a button (`Read` by default) that toggles `done` on the note.
-- **Add next** creates the next numbered note in the current folder (`X-Men` with `#16` → `X-Men #17.md`).
+- Each item card has a button (`Read` by default) that toggles `done` on the note. When the item is already read, the button stays labeled **Read** and turns green; click again to unread.
+- **Add next** creates the next numbered note in a series folder, cloning however you already number (`#16` → `#17`, `5` → `6`, `.6` → `.7`, `v6` → `v7`).
+- **Add new** on a parent (Comics, library root) creates a child collection folder and a cover note.
 
 ## Install into a vault
 
@@ -59,17 +60,18 @@ Settings for this plugin are under **Settings → Media Tracker**.
 
 The default library folder is `Media`. If your vault *is* the library (for example `Comics/` and `Manga/` at the vault root), set **Library folder** to **Vault root**.
 
-If `Media` does not exist, the view says so. **Create folder** makes it; it does not create a note until you press **Add next** again.
+If `Media` does not exist, the view says so. **Create folder** makes it; it does not create a note until you press **Add new** or **Add next** again.
 
 ## Use the grid
 
 - Click a collection card to drill in.
 - Use the breadcrumb to go back up.
 - Click an item title (or the card) to open the note.
-- Click **Read** (or your label) to set `done: true`. **Undo Read** clears it.
-- **Add next** creates `{folder name} #{n}.md` in the folder you are viewing. It takes the highest trailing `#N` among sibling notes, then `+ 1`. `X-Men #16` and `Good Girls S01 #3` both count. If nothing is numbered yet, you get `#1`.
+- Click **Read** (or your label) to set `done: true`. The button stays **Read** and turns green. Click it again to clear `done`.
+- On a parent folder (library root, Comics, anything with subcollections), **Add new** asks for a name and creates that folder plus a folder note (`X-Men/X-Men.md`). Renaming the folder also renames that note.
+- On a series folder, **Add next** creates the next numbered note. It takes the highest trailing number among sibling notes and reuses that file's prefix: `X-Men #16` → `X-Men #17`, `Saga 5` → `Saga 6`, `.6` → `.7`, `v6` → `v7`. If nothing is numbered yet, you get `{folder name} #1`.
 
-Command palette **Add next item** does the same for the open grid folder, or for the folder of the active note if the grid is closed.
+The grid opens as a tab in the main workspace. Command palette **Add next item** follows the same Add new / Add next rule as the toolbar, for the open grid folder, or for the folder of the active note if the grid is closed.
 
 ## Vault layout
 
@@ -90,7 +92,9 @@ Media/                          ← default library folder
         Good Girls S01 #1.md
 ```
 
-A note with the same name as its folder is a **folder note** (cover / action for that collection). It is not shown as an item card. It can live inside the folder (`X-Men/X-Men.md`) or beside it (`Comics/X-Men.md` + `Comics/X-Men/`).
+A note with the same name as its folder is a **folder note** (cover / action for that collection). It is not shown as an item card. **Add new** creates it inside the folder (`X-Men/X-Men.md`). It can also live beside the folder (`Comics/X-Men.md` + `Comics/X-Men/`). If a collection has no cover of its own, the grid uses the first child collection's cover, then the first child's item cover.
+
+Folders named `assets` or `covers` (any case) are skipped in the grid so cover files are not a collection. Put images in `assets/covers/` rather than the vault root.
 
 ## Frontmatter
 
@@ -127,8 +131,8 @@ cover: "[[covers/good-girls.jpg]]"
 
 | Command | What it does |
 | --- | --- |
-| Open media tracker | Opens or focuses the grid view |
-| Add next item | Creates the next numbered note |
+| Open media tracker | Opens or focuses the grid view in the main workspace |
+| Add next item | **Add new** or **Add next**, matching the open folder |
 
 ## Repository
 
@@ -136,9 +140,9 @@ cover: "[[covers/good-girls.jpg]]"
 | --- | --- |
 | `src/main.ts` | Plugin lifecycle (load, ribbon, settings, view) |
 | `src/library.ts` | Vault folders → collection / item nodes |
-| `src/naming.ts` | Next `#N` title |
-| `src/cover.ts` | Cover from frontmatter, embeds, or folder images |
-| `src/actions.ts` | Toggle `done`, create the next note |
+| `src/naming.ts` | Next numbered title (clones `#` / space / `.` / `v` / …) |
+| `src/cover.ts` | Cover from frontmatter, embeds, folder images, or first child |
+| `src/actions.ts` | Toggle `done`, create the next note or collection |
 | `src/settings.ts` | Settings tab |
 | `src/commands.ts` | Command palette |
 | `src/ui/` | Grid view and cards |

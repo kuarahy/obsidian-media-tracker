@@ -95,6 +95,11 @@
 	margin: 0 var(--size-4-2) var(--size-4-2);
 }
 
+.media-tracker-view .media-tracker-card.is-done .media-tracker-card-action {
+	background-color: var(--color-green);
+	color: var(--background-primary);
+}
+
 .media-tracker-card.is-done .media-tracker-card-cover {
 	opacity: 0.55;
 }

@@ -50,7 +50,7 @@ export function applyItemDoneState(card: HTMLElement, done: boolean, actionLabel
 	card.classList.toggle("is-done", done);
 	const button = card.querySelector(".media-tracker-card-action");
 	if (button instanceof HTMLButtonElement) {
-		button.setText(done ? `Undo ${actionLabel}` : actionLabel);
+		button.setText(actionLabel);
 	}
 }
 

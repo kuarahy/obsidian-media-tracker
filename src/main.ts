@@ -1,4 +1,5 @@
-import { Plugin } from "obsidian";
+import { Plugin, TFolder } from "obsidian";
+import { syncFolderNoteOnRename } from "./actions";
 import { registerCommands } from "./commands";
 import { DEFAULT_SETTINGS, MediaTrackerSettingTab, type MediaTrackerSettings } from "./settings";
 import { VIEW_TYPE_MEDIA_TRACKER } from "./types";
@@ -20,6 +21,13 @@ export default class MediaTrackerPlugin extends Plugin {
 		});
 		this.addSettingTab(new MediaTrackerSettingTab(this.app, this));
 		registerCommands(this);
+		this.registerEvent(
+			this.app.vault.on("rename", (file, oldPath) => {
+				if (file instanceof TFolder) {
+					void syncFolderNoteOnRename(this.app, file, oldPath);
+				}
+			}),
+		);
 	}
 
 	async saveSettings(): Promise<void> {
@@ -35,7 +43,7 @@ export default class MediaTrackerPlugin extends Plugin {
 			return;
 		}
 
-		const leaf = this.app.workspace.getRightLeaf(false) ?? this.app.workspace.getLeaf(true);
+		const leaf = this.app.workspace.getLeaf("tab");
 		await leaf.setViewState({ type: VIEW_TYPE_MEDIA_TRACKER, active: true });
 		await this.app.workspace.revealLeaf(leaf);
 	}

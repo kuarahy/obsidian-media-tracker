@@ -1,7 +1,8 @@
 import { ItemView, Notice, TAbstractFile, WorkspaceLeaf } from "obsidian";
-import { createNextNote, ensureFolder, toggleItemDone } from "../actions";
+import { createCollection, createNextNote, ensureFolder, toggleItemDone } from "../actions";
 import { resolveCollectionCover, resolveItemCover } from "../cover";
 import {
+	addToolbarMode,
 	breadcrumbSegments,
 	getFolderByPath,
 	isPathInLibrary,
@@ -12,6 +13,7 @@ import type { MediaTrackerPluginApi } from "../settings";
 import type { ItemNode } from "../types";
 import { VIEW_TYPE_MEDIA_TRACKER } from "../types";
 import { applyItemDoneState, createCollectionCard, createItemCard } from "./cards";
+import { promptForName } from "./name-modal";
 
 export class MediaTrackerView extends ItemView {
 	plugin: MediaTrackerPluginApi;
@@ -50,16 +52,31 @@ export class MediaTrackerView extends ItemView {
 		this.render();
 	}
 
-	async addNextNote(): Promise<void> {
+	async addFromToolbar(): Promise<void> {
 		try {
 			const existed = getFolderByPath(this.app, this.currentFolderPath);
 			const folder = await ensureFolder(this.app, this.currentFolderPath);
-			if (existed) {
+			const folderPath = folder.path === "/" ? "" : folder.path;
+			if (!existed) {
+				this.openFolder(folderPath);
+				return;
+			}
+
+			const mode = addToolbarMode(folder, this.plugin.settings.libraryFolder);
+			if (mode === "add-new") {
+				const name = await promptForName(this.app, {
+					title: "New collection",
+					placeholder: "Collection name",
+					confirm: "Create",
+				});
+				if (name === null) return;
+				await createCollection(this.app, folder, name);
+			} else {
 				await createNextNote(this.app, folder);
 			}
-			this.openFolder(folder.path === "/" ? "" : folder.path);
+			this.openFolder(folderPath);
 		} catch (error) {
-			const message = error instanceof Error ? error.message : "Could not add the next note.";
+			const message = error instanceof Error ? error.message : "Could not add to this collection.";
 			new Notice(message);
 		}
 	}
@@ -75,20 +92,27 @@ export class MediaTrackerView extends ItemView {
 		root.addClass("media-tracker-view");
 
 		const folder = getFolderByPath(this.app, this.currentFolderPath);
-		this.renderToolbar(root, folder !== null);
+		const mode = addToolbarMode(folder, libraryPath);
+		this.renderToolbar(root, mode);
 
 		if (!folder) {
 			this.renderMessage(
 				root,
 				`Library folder ${libraryLabel(libraryPath)} was not found.`,
-				"Create it with Add next, or pick another folder in settings.",
+				"Create it with Create folder, or pick another folder in settings.",
 			);
 			return;
 		}
 
 		const nodes = listChildren(this.app, folder);
 		if (nodes.length === 0) {
-			this.renderMessage(root, "This collection is empty.", "Add next creates the first numbered note.");
+			this.renderMessage(
+				root,
+				"This collection is empty.",
+				mode === "add-new"
+					? "Add new creates a collection folder and a cover note."
+					: "Add next creates the first numbered note.",
+			);
 			return;
 		}
 
@@ -122,7 +146,7 @@ export class MediaTrackerView extends ItemView {
 		applyItemDoneState(card, next, actionLabel);
 	}
 
-	private renderToolbar(root: HTMLElement, folderExists: boolean): void {
+	private renderToolbar(root: HTMLElement, mode: ReturnType<typeof addToolbarMode>): void {
 		const toolbar = root.createDiv({ cls: "media-tracker-toolbar" });
 		const crumbs = toolbar.createDiv({ cls: "media-tracker-breadcrumb" });
 		const segments = breadcrumbSegments(this.currentFolderPath, this.plugin.settings.libraryFolder);
@@ -145,9 +169,9 @@ export class MediaTrackerView extends ItemView {
 
 		const add = toolbar.createEl("button", {
 			cls: "media-tracker-add",
-			text: folderExists ? "Add next" : "Create folder",
+			text: toolbarLabel(mode),
 		});
-		add.addEventListener("click", () => void this.addNextNote());
+		add.addEventListener("click", () => void this.addFromToolbar());
 	}
 
 	private renderMessage(root: HTMLElement, title: string, detail: string): void {
@@ -205,6 +229,12 @@ export class MediaTrackerView extends ItemView {
 		window.clearTimeout(this.debounceHandle);
 		this.debounceHandle = null;
 	}
+}
+
+function toolbarLabel(mode: ReturnType<typeof addToolbarMode>): string {
+	if (mode === "create-folder") return "Create folder";
+	if (mode === "add-new") return "Add new";
+	return "Add next";
 }
 
 function libraryLabel(libraryFolder: string): string {

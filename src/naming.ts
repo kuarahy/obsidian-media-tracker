@@ -1,12 +1,14 @@
-const ISSUE_AT_END = /#\s*(\d+)\s*$/;
+const TRAILING_NUMBER = /(\d+)\s*$/;
 
-// ninja: one trailing #N parser covers X-Men #16, #16, and Good Girls S01 #3.
+interface ParsedIssue {
+	n: number;
+	prefix: string;
+	width: number;
+}
+
+// ninja: trailing digits plus the text in front is the user's scheme (#, space, ., v, Volume, …).
 export function parseIssueNumber(basename: string): number | null {
-	const match = basename.match(ISSUE_AT_END);
-	const raw = match?.[1];
-	if (raw === undefined) return null;
-	const n = Number(raw);
-	return Number.isFinite(n) ? n : null;
+	return parseIssue(basename)?.n ?? null;
 }
 
 export function nextIssueNumber(basenames: string[]): number {
@@ -20,11 +22,39 @@ export function nextIssueNumber(basenames: string[]): number {
 
 export function nextNoteBasename(existingBasenames: string[], collectionTitle: string): string {
 	const taken = new Set(existingBasenames);
-	let n = nextIssueNumber(existingBasenames);
-	let candidate = `${collectionTitle} #${n}`;
+	const best = highestIssue(existingBasenames);
+	const prefix = best?.prefix ?? `${collectionTitle} #`;
+	const width = best?.width ?? 1;
+	let n = (best?.n ?? 0) + 1;
+	let candidate = formatIssue(prefix, n, width);
 	while (taken.has(candidate)) {
 		n += 1;
-		candidate = `${collectionTitle} #${n}`;
+		candidate = formatIssue(prefix, n, width);
 	}
 	return candidate;
+}
+
+function highestIssue(basenames: string[]): ParsedIssue | null {
+	let best: ParsedIssue | null = null;
+	for (const name of basenames) {
+		const parsed = parseIssue(name);
+		if (!parsed) continue;
+		if (!best || parsed.n > best.n) best = parsed;
+	}
+	return best;
+}
+
+function parseIssue(basename: string): ParsedIssue | null {
+	const match = basename.match(TRAILING_NUMBER);
+	if (!match || match.index === undefined) return null;
+	const digits = match[1];
+	if (digits === undefined) return null;
+	const n = Number(digits);
+	if (!Number.isFinite(n)) return null;
+	return { n, prefix: basename.slice(0, match.index), width: digits.length };
+}
+
+function formatIssue(prefix: string, n: number, width: number): string {
+	const body = width > 1 ? String(n).padStart(width, "0") : String(n);
+	return `${prefix}${body}`;
 }
