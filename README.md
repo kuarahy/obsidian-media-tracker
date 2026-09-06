@@ -1,23 +1,57 @@
-Grid View Shows all collections as cards for comics (think when you click on Google Images and you see all images there if you are researching comics)
+# Media Tracker
 
-When you click in one of the collections
-It opens all  of the other comics under it, which are just simple cards, that contain the comics themselves
+Obsidian plugin that shows a vault folder as a card grid. Collections are folders. Items are notes. Comics, manga, and shows use the same tree.
 
-Adding a Note under that collection add a note with the name of the collection and +1 on the latest volume. eg if X-Men has 16 volumes, adding another one would add a note X-Men #17
+## Install
 
-The media should be agnostic. For example, this also could be repurposed for series. Each comic/note/episode/etc would contain a button below them for "read/watched/etc" too. And the button should be customizable (in terms of text)
+1. Copy `main.js`, `manifest.json`, and `styles.css` into `<vault>/.obsidian/plugins/media-tracker/`.
+2. Enable **Media Tracker** in **Settings → Community plugins**.
+3. Create a `Media` folder in the vault (or pick another library folder in plugin settings).
 
-So when clicking on Grid, it would display the whole collection as a grid (maybe a note that contains all of them? So one could have a grid-note that would contain:
+For development: `npm install`, then `npm run dev`. Reload the plugin after it rebuilds.
 
-Comics 
-|__ X-Men
-   |__ X-Men # 1, #2, #3 --> 3 notes, each has a card visible on click
+## Vault layout
 
-Manga (another grid-note? Folder? IDK)
-|__ Death Note
-   |__ All volumes of Death Note, each a visible card with images
+```
+Media/
+  Comics/
+    X-Men/
+      X-Men #1.md
+      X-Men #16.md
+  Manga/
+    Death Note/
+      Death Note #1.md
+  Shows/
+    Good Girls/
+      Season 1/
+        Good Girls S01 #1.md
+```
 
-Shows
-|__ Good Girls
-    |__ Season 1
-       |__ #1, #2, #3, etc
+Open the view from the ribbon or **Open media tracker**. Click a collection card to drill in. **Add next** in `X-Men` after `#16` creates `X-Men #17.md`.
+
+A note named the same as its folder is a folder note (collection metadata), not an item card.
+
+## Item notes
+
+```yaml
+---
+cover: "[[covers/xmen-1.jpg]]"
+done: false
+---
+```
+
+Cover lookup: `cover` frontmatter, then the first embedded image, then the first image file in the folder.
+
+The card button toggles `done`. Default label is **Read**. Change it in settings, or override one collection with a folder note:
+
+```yaml
+---
+action: Watched
+cover: "[[covers/good-girls.jpg]]"
+---
+```
+
+## Settings
+
+- **Library folder** — only this folder is scanned.
+- **Action label** — button text when a collection does not set `action`.
