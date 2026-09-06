@@ -1,18 +1,5 @@
 TODO
 
-New: 
-- [ ] Bug: Covers Collection shouldn't be hidden from the Media Tracker, it is a library name
-- [ ] Feature: zooming in and out of the Media Tracker so grids are as big or small as users want, it should "snap at the corners" by calculating the size of
-- [ ] Bug: "Not synchronized" message still present, even if items are synchronized
-- [ ] Question/Bug: the sync location change shouldn't be attached to this code. It's part of another plugin. If it's attached to this plugin work, it's a bug.
-- [ ] Feature: The cover note should be called "Cover" instead of the name of the series to make it really obvious where it resides
-- [ ] Feature: Change Cover button alongside Add Next (it should open the note where you add a cover, or an input where someone would add the cover from there, which would generate the image link within the note where a cover is created).
-![alt text](image.png)
-- [ ] Bug: Add new should be Add New
-- [ ] Bug : Add next should be Add Next
-- [ ] Feature: collections names should display fully and not hide (eg Absolute Wonder Wom... should be Absolute Wonder Woman). Evaluate if zoom solves it.
-![alt text](image-1.png)
-
 Code clarity:
 - [ ] We need comments to understand which functions do what, code now is very undocumented, we may need more documentation on how to use the app as well on the repository
 
@@ -35,3 +22,14 @@ would unread/unwatch, etc
 - [X] The images added to a comic/shows/library/etc shouldn't be placed at the root at the vault, but in a folder that is not displayed in Obsidian as another collection (eg covers/other name)
 This would avoid them displaying as such (at the bottom)
 ![alt text](image-4.png)
+- [X] Bug: Covers Collection shouldn't be hidden from the Media Tracker, it is a library name
+- [X] Feature: zooming in and out of the Media Tracker so grids are as big or small as users want, it should "snap at the corners" by calculating the size of
+- [X] Bug: "Not synchronized" message still present, even if items are synchronized
+- [X] Question/Bug: the sync location change shouldn't be attached to this code. It's part of another plugin. If it's attached to this plugin work, it's a bug.
+- [X] Feature: The cover note should be called "Cover" instead of the name of the series to make it really obvious where it resides
+- [X] Feature: Change Cover button alongside Add Next (it should open the note where you add a cover, or an input where someone would add the cover from there, which would generate the image link within the note where a cover is created).
+![alt text](image.png)
+- [X] Bug: Add new should be Add New
+- [X] Bug : Add next should be Add Next
+- [X] Feature: collections names should display fully and not hide (eg Absolute Wonder Wom... should be Absolute Wonder Woman). Evaluate if zoom solves it.
+![alt text](image-1.png)
