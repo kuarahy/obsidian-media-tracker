@@ -4,11 +4,13 @@ import { listVaultFolderPaths } from "./library";
 export interface MediaTrackerSettings {
 	libraryFolder: string;
 	actionLabel: string;
+	gridColumns: number;
 }
 
 export const DEFAULT_SETTINGS: MediaTrackerSettings = {
 	libraryFolder: "Media",
 	actionLabel: "Read",
+	gridColumns: 6,
 };
 
 export interface MediaTrackerPluginApi extends Plugin {
@@ -16,6 +18,7 @@ export interface MediaTrackerPluginApi extends Plugin {
 	saveSettings(): Promise<void>;
 	activateView(): Promise<void>;
 	ensureRootCoversRelocated(): Promise<void>;
+	persistSettings(): Promise<void>;
 }
 
 export class MediaTrackerSettingTab extends PluginSettingTab {

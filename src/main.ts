@@ -49,6 +49,10 @@ export default class MediaTrackerPlugin extends Plugin {
 		this.refreshViews();
 	}
 
+	async persistSettings(): Promise<void> {
+		await this.saveData(this.settings);
+	}
+
 	async activateView(): Promise<void> {
 		const existing = this.app.workspace.getLeavesOfType(VIEW_TYPE_MEDIA_TRACKER);
 		const existingLeaf = existing[0];
