@@ -1,6 +1,6 @@
 # Implementation plan: TODO follow-ups
 
-End-user plugin, already shipping. These items are fixes and small creation-path gaps from real vault use, not a v2. Robustness: mixed `#N` / unhashed titles, missing folder notes, covers that live beside the library, view closed during rename.
+End-user plugin, already shipping. These items are fixes and small creation-path gaps from real vault use, not a v2. Robustness: mixed `#N` / unhashed / `.N` / `vN` titles, missing folder notes, covers that live beside the library, view closed during rename.
 
 ## ninja: do we build this?
 
@@ -10,20 +10,20 @@ The vault in the screenshots is the spec: `Comics/Saga` with both `Saga #1` and 
 
 ## Product, restated from TODO.md
 
-1. Done button stays a status (`Read`), not `Undo Read`. Click again clears `done`.
+1. Done button stays a status (`Read`), not `Undo Read`. Click again clears `done`. When it is already read, the button is green.
 2. **Open media tracker** opens in the main workspace, not the right sidebar.
-3. Add-next understands `Saga #5` and `Saga 5` as the same sequence; next is 6, not a second run of 1–3.
+3. Add-next is agnostic to how the user numbers: `#6`, `6`, `.6`, `v6` (or whatever prefix they already used). Next clones that scheme. Do not force `#`.
 4. Cover files do not sit at vault root as a fake collection, and they should stop tripping Sync's "invalid path" banner.
 5. New collections get a folder note (the cover note). Parents without a cover use the first child's cover.
 6. On a parent (Comics), the toolbar is **Add new**, which creates a child collection + folder note. Renaming the folder renames that note.
 
-## 1. Done button copy
+## 1. Done button copy + green when read
 
-**Root cause:** `applyItemDoneState` prefixes `Undo` when `done` is true.
+**Root cause:** `applyItemDoneState` prefixes `Undo` when `done` is true. Nothing in CSS marks the button as completed.
 
-**Fix:** keep `actionLabel` in both states. `is-done` already dims the card; that is the "it is read" signal. Click still toggles. Do not rename the second click to `Unread` — that is the same inverse-action pattern.
+**Fix:** keep `actionLabel` in both states. `is-done` already dims the card. The button itself gets a green background (Obsidian `--color-green`) so "already read" is visible on the control, not only as `Undo Read` text. Click still toggles. Do not rename the second click to `Unread` — that is the same inverse-action pattern.
 
-`cards.ts` only. README line about **Undo Read** updates with this change.
+`cards.ts` + `styles.css`. README line about **Undo Read** updates with this change.
 
 ## 2. Open in the main region
 
@@ -33,21 +33,15 @@ The vault in the screenshots is the spec: `Comics/Saga` with both `Saga #1` and 
 
 `main.ts` only.
 
-## 3. Numbering: accept `#N` or trailing `N`
+## 3. Numbering: clone the user's scheme
 
-**Root cause:** `parseIssueNumber` only matches `/#\s*(\d+)\s*$/`. Unhashed `Saga 5` is invisible to `nextIssueNumber`. `nextNoteBasename` only treats the exact string as taken, so `Saga 5` does not block `Saga #5`. Folders that started as `Saga 1`…`Saga 4` then get a parallel `Saga #1`… sequence. That is the extra row in the screenshot (`Saga #5`, `Saga 1`, `Saga 2`, `Saga 3`).
+**Root cause:** `parseIssueNumber` only matches `/#\s*(\d+)\s*$/`. Unhashed `Saga 5` is invisible to `nextIssueNumber`. `nextNoteBasename` always emits `{Title} #{n}`, so a folder that started as `Saga 1`…`Saga 4` gets a parallel `Saga #1`… sequence. `.6` and `v6` never count.
 
-**Fix, one parser:**
+**ninja:** the scheme lives in the filename, not in the plugin. Parse a trailing integer. Whatever sits in front of those digits is the prefix to reuse (`Saga #`, `Saga `, `Saga.`, `v`, `.`, `Good Girls S01 #`, `Volume `). Next file = that prefix + (max + 1), preserving zero-padding if they used `01`. Empty folder still defaults to `{Title} #1` (need some first-note grammar). Do not rewrite existing notes. Do not merge `Saga #1` and `Saga 1` into one file.
 
-```
-^(?:{escapedTitle}\s+)?#?\s*(\d+)\s*$
-```
+Highest `n` wins when mixed (`Saga #4` and `Saga 5` → next is `Saga 6`, because 5 is the max and its prefix is `Saga `). Collision: bump `n` with the same prefix until free.
 
-Same function as today: `X-Men #16`, `#16`, `Good Girls S01 #3`, and `Saga 5` all yield a number. `nextIssueNumber` is max + 1. `taken` must include **both** `{Title} #{n}` and `{Title} {n}` so neither form of 5 is created twice.
-
-**Canonical create:** `{Title} #{n}` (unchanged). Do not rewrite existing notes. Do not merge duplicate files.
-
-`naming.ts` (+ `createNextNote` only if the taken-set needs both forms there rather than inside `nextNoteBasename`).
+`naming.ts` only.
 
 ## 4. Cover files: folder + hide from the grid
 
@@ -86,7 +80,7 @@ Folder notes already exist in `findFolderNote` / `isFolderNote`. They are not cr
 | Has any subfolder (library root, Comics, Manga) | **Add new** | Prompt for name → `createFolder` + folder note |
 | Else (series folder, including empty newly created ones) | **Add next** | existing `createNextNote` |
 
-Empty series → **Add next** (`Saga #1`). Empty library with no children yet → **Add new** (need a name; `#1` under `Media` is not a collection). If the library folder itself is missing, keep **Create folder**.
+Empty series → **Add next** (first note follows the default `#1`, or the folder's existing scheme). Empty library with no children yet → **Add new** (need a name; `#1` under `Media` is not a collection). If the library folder itself is missing, keep **Create folder**.
 
 **Add new** needs a name. Small `Modal` in `ui/name-modal.ts` (Obsidian has no public prompt helper). Cancel = no write.
 
@@ -94,7 +88,7 @@ Empty series → **Add next** (`Saga #1`). Empty library with no children yet �
 
 Listen on the **plugin**, not only on the open view, so a rename while the grid is closed still works. On folder rename: if `{oldName}.md` exists inside the renamed folder, `vault.rename` it to `{newName}.md`. If a sibling `{parent}/{oldName}.md` exists, rename that too. Conflict (target exists): skip and leave the old note; do not overwrite.
 
-`grid-view.ts`, `actions.ts`, `main.ts` (rename listener), `commands.ts` (palette: **Add new collection** when the open folder is a parent, otherwise keep **Add next item**).
+`grid-view.ts`, `actions.ts`, `main.ts` (rename listener), `commands.ts` (palette follows the same Add new / Add next rule as the toolbar).
 
 ## Architecture (still the same files)
 
@@ -102,12 +96,13 @@ Listen on the **plugin**, not only on the open view, so a rename while the grid 
 src/
   main.ts              # leaf in main tab; vault rename → sync folder note
   actions.ts           # createCollection + renameFolderNote
-  naming.ts            # optional #
+  naming.ts            # trailing number; clone prefix
   library.ts           # hide assets/covers; isParentFolder
   cover.ts             # child-cover fallback
   ui/grid-view.ts      # Add new vs Add next
   ui/name-modal.ts     # collection name (new file; keeps grid-view as layout)
   ui/cards.ts          # done label
+  styles.css           # green Read button when done
 ```
 
 No new runtime dependencies. `library.ts` stays read-only except the denylist predicate. Writes stay in `actions.ts`.
@@ -116,21 +111,22 @@ No new runtime dependencies. `library.ts` stays read-only except the denylist pr
 
 Each step is shippable; stop if a later step is unused.
 
-1. **Main tab + done label.** Visible immediately, no vault writes.
-2. **Numbering.** Parser + taken-set both forms. Hand-check Saga with mixed `#5` / `5`.
+1. **Main tab + done label + green button.** Visible immediately, no vault writes.
+2. **Numbering.** Trailing integer; next clones that prefix. Hand-check `#5` / `5` / `.6` / `v6`.
 3. **Hide `assets` / `covers`.** Grid stops showing cover folders as libraries.
 4. **Child cover fallback.** Comics/Manga cards get art without new notes.
 5. **Add new + folder note + name modal.**
 6. **Rename sync.** Rename a series in the file explorer; cover note follows.
-7. **README** to match: main tab, Read stays Read, Add new, `assets/covers/`, both number forms.
+7. **README** to match: main tab, green Read, Add new, `assets/covers/`, scheme-agnostic numbering.
 
 ## Testing
 
 No new test runner. Vault fixtures:
 
 - Open tracker: tab in the center, not the right sidebar
-- Mark read: button still says `Read`; click again clears `done`
-- Folder with `Saga #4` and `Saga 5` → Add next creates `Saga #6`, not `Saga #1` or `Saga 5`
+- Mark read: button still says `Read`, turns green; click again clears `done` and the green
+- `Saga #5` → Add next is `Saga #6`; `Saga 5` → `Saga 6`; `.6` → `.7`; `v6` → `v7`
+- Folder with `Saga #4` and `Saga 5` → Add next is `Saga 6` (max wins, clone that prefix)
 - `assets/` and `covers/` absent from the grid; Comics/Manga still there
 - Library root: Comics card uses Saga's cover if Comics has no folder note
 - On Comics: **Add new** → name `X-Men` → `Comics/X-Men/X-Men.md`; drill-in shows **Add next**
