@@ -1,144 +1,109 @@
-# Implementation plan: TODO follow-ups
+# Implementation plan: remaining TODOs
 
-End-user plugin, already shipping. These items are fixes and small creation-path gaps from real vault use, not a v2. Robustness: mixed `#N` / unhashed / `.N` / `vN` titles, missing folder notes, covers that live beside the library, view closed during rename.
+End-user plugin, already in the Media vault (`A:\Obsidian\Media`, library = vault root). This replaces the previous PLAN.md. Closed items stay closed. Remaining items failed because the last pass hid symptoms or never ran in Obsidian, not because the product changed.
 
 ## ninja: do we build this?
 
-Yes, against the existing modules. Do **not** add cover APIs, a second tree, React, or a media-type enum. Do **not** move or delete the user's existing root images. Each TODO maps to one root cause; one fix, then the next.
+Yes, only what is still unchecked. Do not redo Read/green, main-tab open, or Add new vs Add next. Do not install dependencies. Do not download covers. Do not merge duplicate notes into one file.
 
-The vault in the screenshots is the spec: `Comics/Saga` with both `Saga #1` and `Saga 1`, covers dumped at vault root, `assets/covers/` already there, tracker opened in the right sidebar, **Add next** on `Library / Comics`.
+The LiveSync invalid-path banner is checked off. Leave it. That is LiveSync/path policy (often `#` in filenames and files sitting at vault root), not a media-tracker write.
 
-## Product, restated from TODO.md
+## Still open (from TODO.md)
 
-1. Done button stays a status (`Read`), not `Undo Read`. Click again clears `done`. When it is already read, the button is green.
-2. **Open media tracker** opens in the main workspace, not the right sidebar.
-3. Add-next is agnostic to how the user numbers: `#6`, `6`, `.6`, `v6` (or whatever prefix they already used). Next clones that scheme. Do not force `#`.
-4. Cover files do not sit at vault root as a fake collection, and they should stop tripping Sync's "invalid path" banner.
-5. New collections get a folder note (the cover note). Parents without a cover use the first child's cover.
-6. On a parent (Comics), the toolbar is **Add new**, which creates a child collection + folder note. Renaming the folder renames that note.
+1. New images land at vault root and show at the bottom of the file explorer. They belong in a covers folder that is not a collection.
+2. Add-next still feels wrong: click / add after `Saga #5` produced `Saga 1`, `Saga 2`, `Saga 3` instead of `6` / `#6` in the user's scheme.
+3. Every new collection needs a cover note. Parents without art use the first child's cover.
+4. Add new's child note must rename when the folder renames.
+5. Add next sits on top of LiveSync's `16 | 0` in the top-right. Preferred fix: LiveSync status to the bottom-right of the main section.
+6. Tab title is `Media tracker`; it should be `Media Tracker`.
 
-## 1. Done button copy + green when read
+## Why the last plan did not finish these
 
-**Root cause:** `applyItemDoneState` prefixes `Undo` when `done` is true. Nothing in CSS marks the button as completed.
+**Images.** `listChildren` hides folders named `assets` / `covers`. The vault still has `saga_01.jpg`, `invincible_01.webp`, `twd_*.webp`, etc. on the vault root, plus a visible `Covers Collection/` folder. Obsidian's default attachment path is unset, so paste/drop still writes to root. Hiding a folder in our grid does not move files in the file explorer.
 
-**Fix:** keep `actionLabel` in both states. `is-done` already dims the card. The button itself gets a green background (Obsidian `--color-green`) so "already read" is visible on the control, not only as `Undo Read` text. Click still toggles. Do not rename the second click to `Unread` — that is the same inverse-action pattern.
+**Numbering.** `naming.ts` already clones the prefix of the highest trailing integer. The vault still has mixed leftovers (`Invincible #1`…`#5` and `Invincible 1.md`; `Volume #01` and `Volume 1.md`). The screenshot extras are extra notes, not a second parser. Two gaps remain: (1) `#` in a basename is an Obsidian heading in wikilinks (`[[Saga #5]]` is `Saga` heading `5`), so "click Saga #5" can miss the issue note; (2) `taken` is exact-string, so `Invincible 1` does not occupy the same slot as `Invincible #1` for collision, but more important is: if `#N` siblings are not seen, max falls to the unhashed `1` and the next names are `2`, `3`, `4`.
 
-`cards.ts` + `styles.css`. README line about **Undo Read** updates with this change.
+**Cover notes.** `createCollection` already writes `{Name}/{Name}.md` with empty `---`. An empty note is not a cover on the library list. Comics/Manga have no useful folder-note art; child fallback exists in `cover.ts` but parent cards still show initials when embeds point at root images that the cache has not resolved, or when the first child has no art. Rename sync is already in `main.ts`; treat "still pending" as verify + fix if the inner note is not actually renamed (conflict skip, or listener not firing).
 
-## 2. Open in the main region
+## 1. Covers live in `assets/covers/`, not vault root
 
-**Root cause:** `activateView` uses `getRightLeaf(false)`.
+**ninja:** reuse `assets/covers/` (already in this vault's language). Do not invent another `Covers Collection`. The library *is* the vault root, so a root-level image *is* "in the library" and must be moved.
 
-**Fix:** if a `media-tracker` leaf exists, `revealLeaf` as today. Otherwise `getLeaf("tab")` (main workspace tab), then `setViewState`. No extra setting until someone asks to pin it in a sidebar on purpose.
+- Ensure `assets/covers/` exists on first relocate, not on `onload`.
+- Keep hiding `assets` and `covers`. Also hide `Covers Collection` (case-insensitive exact name) so that leftover folder is not a library card.
+- On Media Tracker view open (once per session) and on `vault.create` of an image whose parent is the vault root: `vault.rename` into `assets/covers/{filename}`. Collision: Obsidian-style ` name 1.ext`. Use `rename` so `alwaysUpdateLinks` can keep `![[saga_01.jpg]]` working.
+- Do not touch images that already live inside a series folder.
+- Do not walk the whole vault on `onload`.
 
-`main.ts` only.
+`actions.ts` (move) + `library.ts` (denylist) + `main.ts` / `grid-view.ts` (create listener + one-shot on open).
 
-## 3. Numbering: clone the user's scheme
+## 2. Numbering: one sequence, open by path
 
-**Root cause:** `parseIssueNumber` only matches `/#\s*(\d+)\s*$/`. Unhashed `Saga 5` is invisible to `nextIssueNumber`. `nextNoteBasename` always emits `{Title} #{n}`, so a folder that started as `Saga 1`…`Saga 4` gets a parallel `Saga #1`… sequence. `.6` and `v6` never count.
+**Root cause to verify first:** `listItemBasenames` must return `Saga #5` as well as `Saga 5`. If `#` files are missing from that list, next is `Saga 1/2/3`. Fix that list, not the regex.
 
-**ninja:** the scheme lives in the filename, not in the plugin. Parse a trailing integer. Whatever sits in front of those digits is the prefix to reuse (`Saga #`, `Saga `, `Saga.`, `v`, `.`, `Good Girls S01 #`, `Volume `). Next file = that prefix + (max + 1), preserving zero-padding if they used `01`. Empty folder still defaults to `{Title} #1` (need some first-note grammar). Do not rewrite existing notes. Do not merge `Saga #1` and `Saga 1` into one file.
+Then:
 
-Highest `n` wins when mixed (`Saga #4` and `Saga 5` → next is `Saga 6`, because 5 is the max and its prefix is `Saga `). Collision: bump `n` with the same prefix until free.
+- Keep trailing-integer parse and prefix clone (`#6`, `6`, `.6`, `v6`).
+- Occupied numbers: treat `Title #N` and `Title N` (and `.N` / `vN` with the same N) as the same slot when choosing next, so a leftover `Invincible 1.md` cannot start a parallel 1–2–3 run next to `#1`…`#5`. Next after max 5 is 6 in the prefix of the max file (`Invincible #6` here).
+- Open item cards with `openLinkText(path)` as today (path, not `[[Saga #5]]`). Do not add-on-card-click; Add next stays the toolbar. If the user meant "click the #5 card to add #6", that is a different feature — YAGNI until they say so.
 
-`naming.ts` only.
+`naming.ts` + a hand check on the real folders: Saga (`#1`–`#5` → `#6`), Invincible (mixed → `#6`), Card Captors (`Volume #01` / `Volume 1` → `Volume 02` or `#02` from the max file's prefix).
 
-## 4. Cover files: folder + hide from the grid
+## 3. Cover note + parent fallback (make it visible)
 
-The plugin does not write images today. Vault-root `saga_03.webp` and `Covers Collection/` are the user dropping attachments where Obsidian's default attachment path points (vault root) plus a folder that `listChildren` treats as a collection.
+Add new already creates `{Folder}/{Folder}.md`. Keep that name (TODO also says rename the note when the folder name changes, so it is not a generic `Cover.md`).
 
-**ninja:** reuse the folder the vault already has: `assets/covers/`. README already documents `covers/` wikilinks. Do not invent `Covers Collection/`. Do not auto-migrate files already at root (destructive, easy to get wrong).
+- If a new collection is created and a matching image already exists in `assets/covers/`, write `cover:` on the folder note so the library card is not initials.
+- Parent fallback stays: folder note art → images in the folder → first child collection → first child item, including embeds. After images move to `assets/covers/`, also look there for a filename that matches the collection (prefix match, e.g. `saga_`, `invincible_`) before giving up.
+- Do not backfill empty notes onto every old folder in bulk. Missing note on **Add new** is the bug; old folders get fallback + optional covers-folder match.
+- Rename: keep `syncFolderNoteOnRename`. If the inner `{old}.md` is skipped because `{new}.md` already exists, that is correct. If it never runs, register only on `TFolder` as today and add a Notice only if we later see silent failure — no extra UI now.
 
-**Fix:**
+`actions.ts`, `cover.ts`, rename path already in `main.ts`.
 
-- Exclude folder names `assets` and `covers` (case-insensitive) from `listChildren`. They never render as collection cards, at any depth.
-- New default attachment target for anything *this plugin* later writes: `{libraryFolder}/assets/covers/` (or `assets/covers/` when the library is vault root). Create that folder on first plugin-owned write, not on `onload`.
-- Sync banner: "invalid path under the current settings" on those root images is Obsidian Sync + attachment location, not a plugin write. Hiding and steering new files into `assets/covers/` is the plugin's part. Moving the existing root files is a user/vault action.
+## 4. LiveSync status vs Add next
 
-`library.ts` for the denylist. `cover.ts` may look in `assets/covers/` when resolving a collection with no folder-note image (optional, after child fallback). No new dependency.
+LiveSync paints `.livesync-status` as `position: absolute; top: var(--header-height); text-align: right; width: 100%; z-index: cover+1`. Our toolbar button is the same corner of the leaf.
 
-## 5. Folder note = cover note; parent fallback
+**Preferred (user):** move that status to the bottom-right of the main section.
 
-Folder notes already exist in `findFolderNote` / `isFolderNote`. They are not created on **Add**.
-
-**Fix:**
-
-- **Add new** (and first creation of a collection) writes `{Folder}/{Folder}.md` with empty-enough frontmatter that `cover` can be filled later. Inside the folder, not beside it, so one rename path.
-- `resolveCollectionCover`: folder note → first image in folder (today) → **first child collection's cover** (then first child item). Parents like Comics/Manga get a real thumbnail without their own art.
-- Do not backfill folder notes onto every existing collection. Only create them on the new-collection path. Existing folders keep working with image-in-folder and child fallback.
-
-`actions.ts` + `cover.ts`. Recursion stops at the first resolved cover; do not scan the whole library.
-
-## 6. Add new vs Add next; rename keeps the cover note
-
-**Root cause:** toolbar is always **Add next**, which creates a numbered note in the current folder. On `Comics` that is wrong (it is a list of series, not issues).
-
-**Rule, one button:**
-
-| Current folder | Button | Action |
-| --- | --- | --- |
-| Has any subfolder (library root, Comics, Manga) | **Add new** | Prompt for name → `createFolder` + folder note |
-| Else (series folder, including empty newly created ones) | **Add next** | existing `createNextNote` |
-
-Empty series → **Add next** (first note follows the default `#1`, or the folder's existing scheme). Empty library with no children yet → **Add new** (need a name; `#1` under `Media` is not a collection). If the library folder itself is missing, keep **Create folder**.
-
-**Add new** needs a name. Small `Modal` in `ui/name-modal.ts` (Obsidian has no public prompt helper). Cancel = no write.
-
-**Rename:** `isFolderNote` matches basename to folder name. Rename `Saga/` → `Saga Series/` leaves `Saga.md` inside; it becomes a stray item and the cover breaks.
-
-Listen on the **plugin**, not only on the open view, so a rename while the grid is closed still works. On folder rename: if `{oldName}.md` exists inside the renamed folder, `vault.rename` it to `{newName}.md`. If a sibling `{parent}/{oldName}.md` exists, rename that too. Conflict (target exists): skip and leave the old note; do not overwrite.
-
-`grid-view.ts`, `actions.ts`, `main.ts` (rename listener), `commands.ts` (palette follows the same Add new / Add next rule as the toolbar).
-
-## Architecture (still the same files)
+**ninja:** our `styles.css` is global, so a blanket `.livesync-status { bottom: 0 }` would restyle every note view. Scope it:
 
 ```
-src/
-  main.ts              # leaf in main tab; vault rename → sync folder note
-  actions.ts           # createCollection + renameFolderNote
-  naming.ts            # trailing number; clone prefix
-  library.ts           # hide assets/covers; isParentFolder
-  cover.ts             # child-cover fallback
-  ui/grid-view.ts      # Add new vs Add next
-  ui/name-modal.ts     # collection name (new file; keeps grid-view as layout)
-  ui/cards.ts          # done label
-  styles.css           # green Read button when done
+.workspace-leaf-content[data-type="media-tracker"] .livesync-status {
+  top: auto;
+  bottom: 0;
+}
 ```
 
-No new runtime dependencies. `library.ts` stays read-only except the denylist predicate. Writes stay in `actions.ts`.
+If LiveSync mounts the node outside the leaf, apply the same bottom-right rule globally — that is what they asked for, and this vault's "main section" is the tracker more often than a markdown editor.
+
+Do not recolor Add next unless the overlap remains after the move. One problem, one fix.
+
+`styles.css` only.
+
+## 5. Tab title
+
+`getDisplayText()` in `grid-view.ts`: `"Media Tracker"`. Product name, not sentence-case. That is the tab. Leave command palette names as they are.
 
 ## Implementation order
 
-Each step is shippable; stop if a later step is unused.
+1. **Tab title.** One string.
+2. **LiveSync CSS** in our leaf (bottom-right). Reload and see if Add next is clear.
+3. **Relocate root images** + hide `Covers Collection` + create-listener.
+4. **Numbering occupied-slots** + verify `listItemBasenames` on `#` files in the real vault.
+5. **Cover resolve** from `assets/covers/` + optional `cover:` on Add new when a match exists. Confirm rename of the folder note.
 
-1. **Main tab + done label + green button.** Visible immediately, no vault writes.
-2. **Numbering.** Trailing integer; next clones that prefix. Hand-check `#5` / `5` / `.6` / `v6`.
-3. **Hide `assets` / `covers`.** Grid stops showing cover folders as libraries.
-4. **Child cover fallback.** Comics/Manga cards get art without new notes.
-5. **Add new + folder note + name modal.**
-6. **Rename sync.** Rename a series in the file explorer; cover note follows.
-7. **README** to match: main tab, green Read, Add new, `assets/covers/`, scheme-agnostic numbering.
+## Testing (this vault)
 
-## Testing
-
-No new test runner. Vault fixtures:
-
-- Open tracker: tab in the center, not the right sidebar
-- Mark read: button still says `Read`, turns green; click again clears `done` and the green
-- `Saga #5` → Add next is `Saga #6`; `Saga 5` → `Saga 6`; `.6` → `.7`; `v6` → `v7`
-- Folder with `Saga #4` and `Saga 5` → Add next is `Saga 6` (max wins, clone that prefix)
-- `assets/` and `covers/` absent from the grid; Comics/Manga still there
-- Library root: Comics card uses Saga's cover if Comics has no folder note
-- On Comics: **Add new** → name `X-Men` → `Comics/X-Men/X-Men.md`; drill-in shows **Add next**
-- Rename `X-Men/` to `Uncanny X-Men/`: folder note renamed; card still a collection, not an extra item
-- Add next in `Season 1` still increments `Good Girls S01 #3`
+- Vault root no longer lists `saga_*.jpg` / `invincible_*.webp`; they sit under `assets/covers/`. File explorer bottom is clean. Grid does not show `assets`, `covers`, or `Covers Collection`.
+- Saga Add next → `Saga #6.md`. Invincible Add next → `Invincible #6.md` (not `Invincible 2`).
+- Add new `Foo` → `Foo/Foo.md`. Rename `Foo/` → `Bar/` → `Bar.md` inside. Comics card shows a child cover if Comics has no own art.
+- Tracker tab label: `Media Tracker`. LiveSync `16 | 0` sits bottom-right of that view, not on Add next.
 
 ## Explicit non-goals
 
-- Moving or deleting existing vault-root images
-- Downloading covers
-- Auto-creating folder notes for collections that already exist
-- Deduplicating `Saga #1.md` and `Saga 1.md` into one file
-- A setting for sidebar vs main (main is the default now)
-- `SxxEyy` parsers, ratings, drag-reorder
-- Treating `Covers Collection` as a special snowflake beyond the `covers`/`assets` denylist (user can delete that folder)
+- Reverting Read / main tab / Add new vs Add next
+- Deleting `Covers Collection` (hide only)
+- Deduplicating `Invincible #1.md` and `Invincible 1.md` into one file
+- Changing LiveSync plugin files
+- Cover download, `SxxEyy`, ratings
