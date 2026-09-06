@@ -1,5 +1,6 @@
 import { App, TFile, TFolder } from "obsidian";
-import { getFolderByPath, listItemBasenames, readDone } from "./library";
+import { isImageFile } from "./cover";
+import { COVER_FOLDER, getFolderByPath, listItemBasenames, readDone } from "./library";
 import { nextNoteBasename } from "./naming";
 
 const INVALID_FOLDER_CHARS = /[\\/:*?"<>|]/;
@@ -97,4 +98,43 @@ function basenameOfPath(path: string): string {
 	const normalized = path.replace(/\/+$/g, "");
 	const slash = normalized.lastIndexOf("/");
 	return slash === -1 ? normalized : normalized.slice(slash + 1);
+}
+
+export async function relocateRootImages(app: App): Promise<void> {
+	await ensureFolder(app, COVER_FOLDER);
+	const root = app.vault.getRoot();
+	const images = root.children.filter((child): child is TFile => child instanceof TFile && isImageFile(child));
+	for (const file of images) {
+		await relocateImageToCovers(app, file);
+	}
+}
+
+export async function relocateImageToCoversIfRoot(app: App, file: TFile): Promise<void> {
+	if (!isImageFile(file) || !isVaultRootFile(file)) return;
+	await ensureFolder(app, COVER_FOLDER);
+	await relocateImageToCovers(app, file);
+}
+
+async function relocateImageToCovers(app: App, file: TFile): Promise<void> {
+	const dest = availableCoverPath(app, file.name);
+	if (dest === file.path) return;
+	await app.fileManager.renameFile(file, dest);
+}
+
+function isVaultRootFile(file: TFile): boolean {
+	const parent = file.parent;
+	return !parent || parent.path === "/";
+}
+
+function availableCoverPath(app: App, filename: string): string {
+	const desired = `${COVER_FOLDER}/${filename}`;
+	if (!app.vault.getAbstractFileByPath(desired)) return desired;
+	const dot = filename.lastIndexOf(".");
+	const base = dot === -1 ? filename : filename.slice(0, dot);
+	const ext = dot === -1 ? "" : filename.slice(dot);
+	let n = 1;
+	while (app.vault.getAbstractFileByPath(`${COVER_FOLDER}/${base} ${n}${ext}`)) {
+		n += 1;
+	}
+	return `${COVER_FOLDER}/${base} ${n}${ext}`;
 }

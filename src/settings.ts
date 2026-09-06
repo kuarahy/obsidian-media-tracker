@@ -15,6 +15,7 @@ export interface MediaTrackerPluginApi extends Plugin {
 	settings: MediaTrackerSettings;
 	saveSettings(): Promise<void>;
 	activateView(): Promise<void>;
+	ensureRootCoversRelocated(): Promise<void>;
 }
 
 export class MediaTrackerSettingTab extends PluginSettingTab {

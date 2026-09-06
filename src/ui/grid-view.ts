@@ -40,6 +40,7 @@ export class MediaTrackerView extends ItemView {
 
 	async onOpen(): Promise<void> {
 		this.registerLibraryListeners();
+		await this.plugin.ensureRootCoversRelocated();
 		this.render();
 	}
 

@@ -101,6 +101,6 @@ function unwrapWikilink(value: string): string {
 	return (pipe === -1 ? inner : inner.slice(0, pipe)).trim();
 }
 
-function isImageFile(file: TFile): boolean {
+export function isImageFile(file: TFile): boolean {
 	return IMAGE_EXTENSIONS.has(file.extension.toLowerCase());
 }

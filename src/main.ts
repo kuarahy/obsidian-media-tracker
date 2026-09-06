@@ -1,5 +1,5 @@
-import { Plugin, TFolder } from "obsidian";
-import { syncFolderNoteOnRename } from "./actions";
+import { Plugin, TFile, TFolder } from "obsidian";
+import { relocateImageToCoversIfRoot, relocateRootImages, syncFolderNoteOnRename } from "./actions";
 import { registerCommands } from "./commands";
 import { DEFAULT_SETTINGS, MediaTrackerSettingTab, type MediaTrackerSettings } from "./settings";
 import { VIEW_TYPE_MEDIA_TRACKER } from "./types";
@@ -7,6 +7,7 @@ import { MediaTrackerView } from "./ui/grid-view";
 
 export default class MediaTrackerPlugin extends Plugin {
 	settings!: MediaTrackerSettings;
+	private coversRelocated = false;
 
 	async onload(): Promise<void> {
 		this.settings = Object.assign(
@@ -28,6 +29,19 @@ export default class MediaTrackerPlugin extends Plugin {
 				}
 			}),
 		);
+		this.registerEvent(
+			this.app.vault.on("create", (file) => {
+				if (file instanceof TFile) {
+					void relocateImageToCoversIfRoot(this.app, file);
+				}
+			}),
+		);
+	}
+
+	async ensureRootCoversRelocated(): Promise<void> {
+		if (this.coversRelocated) return;
+		this.coversRelocated = true;
+		await relocateRootImages(this.app);
 	}
 
 	async saveSettings(): Promise<void> {

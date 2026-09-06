@@ -20,7 +20,9 @@ export function isPathInLibrary(path: string, libraryFolder: string): boolean {
 	return target === root || target.startsWith(`${root}/`);
 }
 
-const HIDDEN_COLLECTION_FOLDERS = new Set(["assets", "covers"]);
+export const COVER_FOLDER = "assets/covers";
+
+const HIDDEN_COLLECTION_FOLDERS = new Set(["assets", "covers", "covers collection"]);
 
 export function isHiddenCollectionFolder(name: string): boolean {
 	return HIDDEN_COLLECTION_FOLDERS.has(name.toLowerCase());
