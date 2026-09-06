@@ -31,7 +31,7 @@ export class MediaTrackerView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return "Media tracker";
+		return "Media Tracker";
 	}
 
 	getIcon(): string {
