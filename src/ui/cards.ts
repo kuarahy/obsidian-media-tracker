@@ -9,7 +9,7 @@ export function createCollectionCard(
 	const card = parent.createDiv({ cls: "media-tracker-card media-tracker-card-collection" });
 	card.addEventListener("click", opts.onOpen);
 	renderCover(card, opts.name, opts.coverSrc);
-	card.createDiv({ cls: "media-tracker-card-title", text: opts.name });
+	card.createDiv({ cls: "media-tracker-card-title", text: opts.name, attr: { title: opts.name } });
 	return card;
 }
 
@@ -30,7 +30,7 @@ export function createItemCard(
 	card.addEventListener("click", opts.onOpen);
 	renderCover(card, opts.name, opts.coverSrc);
 
-	const title = card.createDiv({ cls: "media-tracker-card-title", text: opts.name });
+	const title = card.createDiv({ cls: "media-tracker-card-title", text: opts.name, attr: { title: opts.name } });
 	title.addEventListener("click", (event) => {
 		event.stopPropagation();
 		opts.onOpen();
