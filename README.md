@@ -1,19 +1,82 @@
 # Media Tracker
 
-Obsidian plugin that shows a vault folder as a card grid. Collections are folders. Items are notes. Comics, manga, and shows use the same tree.
+Obsidian community plugin. Folders are collections. Notes are items. One card grid for comics, manga, shows, or anything else with the same shape.
 
-## Install
+It is not in the Community plugin **Browse** store. You install it from this repo.
 
-1. Copy `main.js`, `manifest.json`, and `styles.css` into `<vault>/.obsidian/plugins/media-tracker/`.
-2. Enable **Media Tracker** in **Settings → Community plugins**.
-3. Create a `Media` folder in the vault (or pick another library folder in plugin settings).
+## What you get
 
-For development: `npm install`, then `npm run dev`. Reload the plugin after it rebuilds.
+- A grid of collection cards (like image search results).
+- Click a collection to open the notes and nested folders inside it.
+- Each item card has a button (`Read` by default) that toggles `done` on the note.
+- **Add next** creates the next numbered note in the current folder (`X-Men` with `#16` → `X-Men #17.md`).
+
+## Install into a vault
+
+Obsidian only loads three files. The folder name must match the plugin id: `media-tracker`.
+
+1. Build (from this repo):
+
+   ```bash
+   npm install
+   npm run build
+   ```
+
+   `npm run dev` also writes `main.js` and is fine if you leave the watcher running.
+
+2. Copy these files into the vault:
+
+   ```
+   <vault>/.obsidian/plugins/media-tracker/main.js
+   <vault>/.obsidian/plugins/media-tracker/manifest.json
+   <vault>/.obsidian/plugins/media-tracker/styles.css
+   ```
+
+   Do not copy `src/`, `node_modules/`, or the git repo into that folder. Obsidian will ignore them.
+
+3. In Obsidian:
+
+   - Reload the app (`Ctrl+R` / `Cmd+R`), or close and reopen the vault.
+   - **Settings → Community plugins**: turn **Restricted mode** off.
+   - Enable **Media Tracker** in the installed-plugin list. Do not look under **Browse**.
+
+If the plugin is missing after a reload, the folder is named wrong, `manifest.json` is not next to `main.js`, or Restricted mode is still on.
+
+### Develop against a vault
+
+Either copy `main.js` after each build, or clone/symlink this repo to `<vault>/.obsidian/plugins/media-tracker/` and run `npm run dev` there so Obsidian picks up rebuilds. Reload the plugin (or the app) after the first build.
+
+## Open the grid
+
+After it is enabled:
+
+- Left ribbon: the grid icon (**Open media tracker**), or
+- Command palette (`Ctrl+P` / `Cmd+P`): **Open media tracker**
+
+Settings for this plugin are under **Settings → Media Tracker**.
+
+### If the grid is empty
+
+The default library folder is `Media`. If your vault *is* the library (for example `Comics/` and `Manga/` at the vault root), set **Library folder** to **Vault root**.
+
+If `Media` does not exist, the view says so. **Create folder** makes it; it does not create a note until you press **Add next** again.
+
+## Use the grid
+
+- Click a collection card to drill in.
+- Use the breadcrumb to go back up.
+- Click an item title (or the card) to open the note.
+- Click **Read** (or your label) to set `done: true`. **Undo Read** clears it.
+- **Add next** creates `{folder name} #{n}.md` in the folder you are viewing. It takes the highest trailing `#N` among sibling notes, then `+ 1`. `X-Men #16` and `Good Girls S01 #3` both count. If nothing is numbered yet, you get `#1`.
+
+Command palette **Add next item** does the same for the open grid folder, or for the folder of the active note if the grid is closed.
 
 ## Vault layout
 
+Collections can nest. Mixed folders are allowed: subfolders are collection cards, markdown notes are item cards.
+
 ```
-Media/
+Media/                          ← default library folder
   Comics/
     X-Men/
       X-Men #1.md
@@ -27,11 +90,11 @@ Media/
         Good Girls S01 #1.md
 ```
 
-Open the view from the ribbon or **Open media tracker**. Click a collection card to drill in. **Add next** in `X-Men` after `#16` creates `X-Men #17.md`.
+A note with the same name as its folder is a **folder note** (cover / action for that collection). It is not shown as an item card. It can live inside the folder (`X-Men/X-Men.md`) or beside it (`Comics/X-Men.md` + `Comics/X-Men/`).
 
-A note named the same as its folder is a folder note (collection metadata), not an item card.
+## Frontmatter
 
-## Item notes
+Item note:
 
 ```yaml
 ---
@@ -40,9 +103,9 @@ done: false
 ---
 ```
 
-Cover lookup: `cover` frontmatter, then the first embedded image, then the first image file in the folder.
+`cover` may be a wikilink, a vault path, or an `http(s)` URL. If it is missing, the plugin uses the first embedded image in the note, then the first image file in the same folder. No covers are downloaded from the internet.
 
-The card button toggles `done`. Default label is **Read**. Change it in settings, or override one collection with a folder note:
+Collection folder note (optional):
 
 ```yaml
 ---
@@ -51,7 +114,48 @@ cover: "[[covers/good-girls.jpg]]"
 ---
 ```
 
+`action` overrides the button label for items in that folder only.
+
 ## Settings
 
-- **Library folder** — only this folder is scanned.
-- **Action label** — button text when a collection does not set `action`.
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| Library folder | `Media` | Only this folder is scanned. **Vault root** scans the whole vault. |
+| Action label | `Read` | Button text when a folder note does not set `action`. |
+
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| Open media tracker | Opens or focuses the grid view |
+| Add next item | Creates the next numbered note |
+
+## Repository
+
+| Path | Role |
+| --- | --- |
+| `src/main.ts` | Plugin lifecycle (load, ribbon, settings, view) |
+| `src/library.ts` | Vault folders → collection / item nodes |
+| `src/naming.ts` | Next `#N` title |
+| `src/cover.ts` | Cover from frontmatter, embeds, or folder images |
+| `src/actions.ts` | Toggle `done`, create the next note |
+| `src/settings.ts` | Settings tab |
+| `src/commands.ts` | Command palette |
+| `src/ui/` | Grid view and cards |
+| `manifest.json` | Plugin id `media-tracker` |
+| `styles.css` | Grid layout |
+| `PLAN.md` | Engineering plan |
+
+Release artifacts (not committed): `main.js` from `npm run build` or `npm run dev`.
+
+```bash
+npm install
+npm run dev      # watch, writes main.js
+npm run build    # typecheck + production bundle
+```
+
+Requires Node 18+. No extra runtime dependencies; Obsidian APIs only.
+
+## License
+
+0-BSD. See `package.json`.
