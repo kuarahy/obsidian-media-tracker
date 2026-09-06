@@ -1,4 +1,4 @@
-import { ItemView, Notice, TAbstractFile, WorkspaceLeaf } from "obsidian";
+import { ItemView, Notice, TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
 import { createCollection, createNextNote, ensureFolder, toggleItemDone } from "../actions";
 import { resolveCollectionCover, resolveItemCover } from "../cover";
 import {
@@ -51,6 +51,12 @@ export class MediaTrackerView extends ItemView {
 	openFolder(path: string): void {
 		this.currentFolderPath = path;
 		this.render();
+	}
+
+	private async openItemNote(path: string): Promise<void> {
+		const file = this.app.vault.getAbstractFileByPath(path);
+		if (!(file instanceof TFile)) return;
+		await this.app.workspace.getLeaf(false).openFile(file);
 	}
 
 	async addFromToolbar(): Promise<void> {
@@ -134,7 +140,7 @@ export class MediaTrackerView extends ItemView {
 				coverSrc: resolveItemCover(this.app, node.path),
 				done: node.done,
 				actionLabel,
-				onOpen: () => void this.app.workspace.openLinkText(node.path, this.currentFolderPath, false),
+				onOpen: () => void this.openItemNote(node.path),
 				onToggle: (card) => void this.onToggleDone(node, card, actionLabel),
 			});
 		}

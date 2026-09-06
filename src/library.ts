@@ -29,7 +29,7 @@ export function isHiddenCollectionFolder(name: string): boolean {
 }
 
 export function isFolderNote(file: TFile, folder: TFolder): boolean {
-	return file.extension === "md" && file.basename === folder.name;
+	return file.extension === "md" && markdownStem(file) === folder.name;
 }
 
 export function isParentCollection(folder: TFolder): boolean {
@@ -58,7 +58,7 @@ export function findFolderNote(folder: TFolder): TFile | null {
 	const parent = folder.parent;
 	if (!parent) return null;
 	for (const child of parent.children) {
-		if (child instanceof TFile && child.extension === "md" && child.basename === folder.name) {
+		if (child instanceof TFile && child.extension === "md" && markdownStem(child) === folder.name) {
 			return child;
 		}
 	}
@@ -83,7 +83,8 @@ export function listItemBasenames(folder: TFolder): string[] {
 	const names: string[] = [];
 	for (const child of folder.children) {
 		if (child instanceof TFile && child.extension === "md" && !isFolderNote(child, folder)) {
-			names.push(child.basename);
+			// ninja: stem from `name`, not `basename` — Obsidian splits wikilinks on `#`.
+			names.push(markdownStem(child));
 		}
 	}
 	return names;
@@ -104,7 +105,7 @@ export function listChildren(app: App, folder: TFolder): LibraryNode[] {
 		if (child instanceof TFile && child.extension === "md" && !isFolderNote(child, folder)) {
 			nodes.push({
 				kind: "item",
-				name: child.basename,
+				name: markdownStem(child),
 				path: child.path,
 				done: readDone(app, child),
 			} satisfies ItemNode);
@@ -145,4 +146,8 @@ function walkFolders(folder: TFolder, out: string[]): void {
 			walkFolders(child, out);
 		}
 	}
+}
+
+function markdownStem(file: TFile): string {
+	return file.name.replace(/\.md$/i, "");
 }

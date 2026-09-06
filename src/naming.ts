@@ -22,26 +22,31 @@ export function nextIssueNumber(basenames: string[]): number {
 
 export function nextNoteBasename(existingBasenames: string[], collectionTitle: string): string {
 	const taken = new Set(existingBasenames);
-	const best = highestIssue(existingBasenames);
+	const occupied = new Set<number>();
+	let best: ParsedIssue | null = null;
+	for (const name of existingBasenames) {
+		const parsed = parseIssue(name);
+		if (!parsed) continue;
+		occupied.add(parsed.n);
+		if (!best || parsed.n > best.n || (parsed.n === best.n && prefersPrefix(parsed, best))) {
+			best = parsed;
+		}
+	}
 	const prefix = best?.prefix ?? `${collectionTitle} #`;
 	const width = best?.width ?? 1;
 	let n = (best?.n ?? 0) + 1;
 	let candidate = formatIssue(prefix, n, width);
-	while (taken.has(candidate)) {
+	while (occupied.has(n) || taken.has(candidate)) {
 		n += 1;
 		candidate = formatIssue(prefix, n, width);
 	}
 	return candidate;
 }
 
-function highestIssue(basenames: string[]): ParsedIssue | null {
-	let best: ParsedIssue | null = null;
-	for (const name of basenames) {
-		const parsed = parseIssue(name);
-		if (!parsed) continue;
-		if (!best || parsed.n > best.n) best = parsed;
-	}
-	return best;
+function prefersPrefix(candidate: ParsedIssue, current: ParsedIssue): boolean {
+	const candidateHash = candidate.prefix.includes("#");
+	const currentHash = current.prefix.includes("#");
+	return candidateHash && !currentHash;
 }
 
 function parseIssue(basename: string): ParsedIssue | null {
