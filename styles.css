@@ -117,3 +117,10 @@
 		flex-wrap: wrap;
 	}
 }
+
+/* LiveSync paints .livesync-status at the top-right of the leaf, on top of Add next. */
+.workspace-leaf-content[data-type="media-tracker"] .livesync-status,
+.workspace-split:has(> .workspace-leaf .workspace-leaf-content[data-type="media-tracker"]) .livesync-status {
+	top: auto;
+	bottom: 0;
+}
