@@ -1,6 +1,6 @@
 import { App, TFile, TFolder } from "obsidian";
 import { findCoverFileForCollection, isImageFile } from "./cover";
-import { COVER_FOLDER, getFolderByPath, listItemBasenames, readDone } from "./library";
+import { COVER_FOLDER, COVER_NOTE_STEM, findFolderNote, getFolderByPath, listItemBasenames, readDone } from "./library";
 import { nextNoteBasename } from "./naming";
 
 const INVALID_FOLDER_CHARS = /[\\/:*?"<>|]/;
@@ -53,14 +53,7 @@ export async function createCollection(app: App, parent: TFolder, rawName: strin
 		throw new Error(`Could not create folder: ${path}`);
 	}
 
-	const notePath = joinPath(folder, `${name}.md`);
-	if (!app.vault.getAbstractFileByPath(notePath)) {
-		const coverFile = findCoverFileForCollection(app, name);
-		const body = coverFile
-			? `---\ncover: "[[${coverFile.path}]]"\n---\n`
-			: "---\n---\n";
-		await app.vault.create(notePath, body);
-	}
+	await ensureCoverNote(app, folder);
 	return folder;
 }
 
@@ -69,11 +62,40 @@ export async function syncFolderNoteOnRename(app: App, folder: TFolder, oldPath:
 	const newName = folder.name;
 	if (oldName === newName) return;
 
+	// ninja: Cover.md keeps its name; only leftover {series}.md notes follow the folder.
 	await renameIfFree(app, joinPath(folder, `${oldName}.md`), joinPath(folder, `${newName}.md`));
 
 	const parent = folder.parent;
 	if (!parent) return;
 	await renameIfFree(app, joinPath(parent, `${oldName}.md`), joinPath(parent, `${newName}.md`));
+}
+
+export async function ensureCoverNote(app: App, folder: TFolder): Promise<TFile> {
+	const existing = findFolderNote(folder);
+	if (existing) return existing;
+
+	const coverFile = findCoverFileForCollection(app, folder.name);
+	const body = coverFile
+		? `---\ncover: "[[${coverFile.path}]]"\n---\n`
+		: "---\n---\n";
+	return app.vault.create(joinPath(folder, `${COVER_NOTE_STEM}.md`), body);
+}
+
+export async function setCoverOnNote(app: App, file: TFile, raw: string): Promise<void> {
+	const value = normalizeCoverValue(raw);
+	await app.fileManager.processFrontMatter(file, (frontmatter) => {
+		frontmatter.cover = value;
+	});
+	const text = await app.vault.read(file);
+	if (/!\[\[/.test(text) || /!\[[^\]]*\]\(/.test(text)) return;
+	const embed = value.startsWith("[[") ? `!${value}` : `![[${value}]]`;
+	await app.vault.append(file, `\n${embed}\n`);
+}
+
+function normalizeCoverValue(raw: string): string {
+	const trimmed = raw.trim();
+	if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith("[[")) return trimmed;
+	return `[[${trimmed}]]`;
 }
 
 export async function toggleItemDone(app: App, path: string): Promise<boolean | null> {
@@ -105,6 +127,7 @@ function basenameOfPath(path: string): string {
 }
 
 export async function relocateRootImages(app: App): Promise<void> {
+	// ninja: only vault-root dumps — series-folder images stay with the notes.
 	await ensureFolder(app, COVER_FOLDER);
 	const root = app.vault.getRoot();
 	const images = root.children.filter((child): child is TFile => child instanceof TFile && isImageFile(child));
