@@ -1,0 +1,114 @@
+.media-tracker-view {
+	padding: var(--size-4-3);
+	overflow-y: auto;
+	height: 100%;
+}
+
+.media-tracker-toolbar {
+	display: flex;
+	align-items: center;
+	gap: var(--size-4-2);
+	margin-bottom: var(--size-4-3);
+}
+
+.media-tracker-breadcrumb {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--size-4-1);
+	flex: 1;
+	min-width: 0;
+	font-size: var(--font-ui-small);
+}
+
+.media-tracker-breadcrumb-sep {
+	color: var(--text-faint);
+}
+
+.media-tracker-breadcrumb-current {
+	font-weight: var(--font-semibold);
+}
+
+.media-tracker-breadcrumb-link,
+.media-tracker-add {
+	padding: var(--size-2-2) var(--size-4-2);
+}
+
+.media-tracker-empty {
+	color: var(--text-muted);
+	padding: var(--size-4-4) 0;
+}
+
+.media-tracker-empty-detail {
+	color: var(--text-faint);
+}
+
+.media-tracker-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+	gap: var(--size-4-3);
+}
+
+.media-tracker-card {
+	cursor: pointer;
+	border-radius: var(--radius-m);
+	background-color: var(--background-secondary);
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.media-tracker-card-cover {
+	aspect-ratio: 2 / 3;
+	background-color: var(--background-modifier-border);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+}
+
+.media-tracker-card-cover img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.media-tracker-card-placeholder {
+	color: var(--text-muted);
+	font-size: var(--font-ui-large);
+	font-weight: var(--font-semibold);
+	padding: var(--size-4-2);
+	text-align: center;
+}
+
+.media-tracker-card-title {
+	padding: var(--size-4-2);
+	font-size: var(--font-ui-small);
+	line-height: var(--line-height-tight);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.media-tracker-card-action {
+	margin: 0 var(--size-4-2) var(--size-4-2);
+}
+
+.media-tracker-card.is-done .media-tracker-card-cover {
+	opacity: 0.55;
+}
+
+.media-tracker-card.is-done .media-tracker-card-title {
+	color: var(--text-muted);
+}
+
+@media (max-width: 420px) {
+	.media-tracker-grid {
+		grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+	}
+
+	.media-tracker-toolbar {
+		flex-wrap: wrap;
+	}
+}

@@ -1,5 +1,51 @@
 import { Plugin } from "obsidian";
+import { registerCommands } from "./commands";
+import { DEFAULT_SETTINGS, MediaTrackerSettingTab, type MediaTrackerSettings } from "./settings";
+import { VIEW_TYPE_MEDIA_TRACKER } from "./types";
+import { MediaTrackerView } from "./ui/grid-view";
 
 export default class MediaTrackerPlugin extends Plugin {
-	async onload(): Promise<void> {}
+	settings!: MediaTrackerSettings;
+
+	async onload(): Promise<void> {
+		this.settings = Object.assign(
+			{},
+			DEFAULT_SETTINGS,
+			(await this.loadData()) as Partial<MediaTrackerSettings>,
+		);
+
+		this.registerView(VIEW_TYPE_MEDIA_TRACKER, (leaf) => new MediaTrackerView(leaf, this));
+		this.addRibbonIcon("layout-grid", "Open media tracker", () => {
+			void this.activateView();
+		});
+		this.addSettingTab(new MediaTrackerSettingTab(this.app, this));
+		registerCommands(this);
+	}
+
+	async saveSettings(): Promise<void> {
+		await this.saveData(this.settings);
+		this.refreshViews();
+	}
+
+	async activateView(): Promise<void> {
+		const existing = this.app.workspace.getLeavesOfType(VIEW_TYPE_MEDIA_TRACKER);
+		const existingLeaf = existing[0];
+		if (existingLeaf) {
+			await this.app.workspace.revealLeaf(existingLeaf);
+			return;
+		}
+
+		const leaf = this.app.workspace.getRightLeaf(false) ?? this.app.workspace.getLeaf(true);
+		await leaf.setViewState({ type: VIEW_TYPE_MEDIA_TRACKER, active: true });
+		await this.app.workspace.revealLeaf(leaf);
+	}
+
+	private refreshViews(): void {
+		for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE_MEDIA_TRACKER)) {
+			const view = leaf.view;
+			if (view instanceof MediaTrackerView) {
+				view.render();
+			}
+		}
+	}
 }
