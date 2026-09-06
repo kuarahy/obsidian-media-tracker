@@ -21,15 +21,19 @@ export function isPathInLibrary(path: string, libraryFolder: string): boolean {
 }
 
 export const COVER_FOLDER = "assets/covers";
+export const COVER_NOTE_STEM = "Cover";
 
-const HIDDEN_COLLECTION_FOLDERS = new Set(["assets", "covers", "covers collection"]);
+const HIDDEN_COLLECTION_FOLDERS = new Set(["assets", "covers"]);
 
 export function isHiddenCollectionFolder(name: string): boolean {
 	return HIDDEN_COLLECTION_FOLDERS.has(name.toLowerCase());
 }
 
 export function isFolderNote(file: TFile, folder: TFolder): boolean {
-	return file.extension === "md" && markdownStem(file) === folder.name;
+	if (file.extension !== "md") return false;
+	const stem = markdownStem(file);
+	// ninja: Cover.md is the cover note; {folder}.md is the old name and still hides as metadata.
+	return stem === COVER_NOTE_STEM || stem === folder.name;
 }
 
 export function isParentCollection(folder: TFolder): boolean {
@@ -52,9 +56,14 @@ export function addToolbarMode(
 }
 
 export function findFolderNote(folder: TFolder): TFile | null {
+	let legacy: TFile | null = null;
 	for (const child of folder.children) {
-		if (child instanceof TFile && isFolderNote(child, folder)) return child;
+		if (!(child instanceof TFile) || child.extension !== "md") continue;
+		const stem = markdownStem(child);
+		if (stem === COVER_NOTE_STEM) return child;
+		if (stem === folder.name) legacy = child;
 	}
+	if (legacy) return legacy;
 	const parent = folder.parent;
 	if (!parent) return null;
 	for (const child of parent.children) {
@@ -149,5 +158,6 @@ function walkFolders(folder: TFolder, out: string[]): void {
 }
 
 function markdownStem(file: TFile): string {
+	// ninja: `name` minus .md — TFile.basename splits on `#`, so Saga #5 would look like Saga.
 	return file.name.replace(/\.md$/i, "");
 }
