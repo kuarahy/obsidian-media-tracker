@@ -1,5 +1,5 @@
 import { ItemView, Notice, TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
-import { createCollection, createNextNote, ensureFolder, toggleItemDone } from "../actions";
+import { createCollection, createNextNote, ensureCoverNote, ensureFolder, setCoverOnNote, toggleItemDone } from "../actions";
 import { resolveCollectionCover, resolveItemCover } from "../cover";
 import {
 	addToolbarMode,
@@ -13,12 +13,15 @@ import type { MediaTrackerPluginApi } from "../settings";
 import type { ItemNode } from "../types";
 import { VIEW_TYPE_MEDIA_TRACKER } from "../types";
 import { applyItemDoneState, createCollectionCard, createItemCard } from "./cards";
-import { promptForName } from "./name-modal";
+import { promptForCover, promptForName } from "./name-modal";
+
+const MIN_CARD_PX = 110;
 
 export class MediaTrackerView extends ItemView {
 	plugin: MediaTrackerPluginApi;
 	currentFolderPath: string;
 	private debounceHandle: number | null = null;
+	private resizeObserver: ResizeObserver | null = null;
 
 	constructor(leaf: WorkspaceLeaf, plugin: MediaTrackerPluginApi) {
 		super(leaf);
@@ -40,11 +43,14 @@ export class MediaTrackerView extends ItemView {
 
 	async onOpen(): Promise<void> {
 		this.registerLibraryListeners();
+		this.registerZoomListeners();
 		await this.plugin.ensureRootCoversRelocated();
 		this.render();
 	}
 
 	async onClose(): Promise<void> {
+		this.resizeObserver?.disconnect();
+		this.resizeObserver = null;
 		this.clearDebounce();
 	}
 
@@ -100,7 +106,7 @@ export class MediaTrackerView extends ItemView {
 
 		const folder = getFolderByPath(this.app, this.currentFolderPath);
 		const mode = addToolbarMode(folder, libraryPath);
-		this.renderToolbar(root, mode);
+		this.renderToolbar(root, mode, folder !== null);
 
 		if (!folder) {
 			this.renderMessage(
@@ -117,9 +123,10 @@ export class MediaTrackerView extends ItemView {
 				root,
 				"This collection is empty.",
 				mode === "add-new"
-					? "Add new creates a collection folder and a cover note."
-					: "Add next creates the first numbered note.",
+					? "Add New creates a collection folder and a Cover note."
+					: "Add Next creates the first numbered note.",
 			);
+			this.applyGridColumns();
 			return;
 		}
 
@@ -144,6 +151,7 @@ export class MediaTrackerView extends ItemView {
 				onToggle: (card) => void this.onToggleDone(node, card, actionLabel),
 			});
 		}
+		this.applyGridColumns();
 	}
 
 	private async onToggleDone(node: ItemNode, card: HTMLElement, actionLabel: string): Promise<void> {
@@ -153,7 +161,28 @@ export class MediaTrackerView extends ItemView {
 		applyItemDoneState(card, next, actionLabel);
 	}
 
-	private renderToolbar(root: HTMLElement, mode: ReturnType<typeof addToolbarMode>): void {
+	private async onChangeCover(): Promise<void> {
+		const folder = getFolderByPath(this.app, this.currentFolderPath);
+		if (!folder) return;
+		try {
+			const note = await ensureCoverNote(this.app, folder);
+			const result = await promptForCover(this.app);
+			if (result === null) return;
+			if (result.action === "set") {
+				await setCoverOnNote(this.app, note, result.value);
+			}
+			await this.openItemNote(note.path);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : "Could not change the cover.";
+			new Notice(message);
+		}
+	}
+
+	private renderToolbar(
+		root: HTMLElement,
+		mode: ReturnType<typeof addToolbarMode>,
+		folderExists: boolean,
+	): void {
 		const toolbar = root.createDiv({ cls: "media-tracker-toolbar" });
 		const crumbs = toolbar.createDiv({ cls: "media-tracker-breadcrumb" });
 		const segments = breadcrumbSegments(this.currentFolderPath, this.plugin.settings.libraryFolder);
@@ -174,6 +203,27 @@ export class MediaTrackerView extends ItemView {
 			link.addEventListener("click", () => this.openFolder(segment.path));
 		});
 
+		const zoomOut = toolbar.createEl("button", {
+			cls: "media-tracker-zoom",
+			text: "−",
+			attr: { "aria-label": "Zoom out" },
+		});
+		zoomOut.addEventListener("click", () => void this.zoom(1));
+		const zoomIn = toolbar.createEl("button", {
+			cls: "media-tracker-zoom",
+			text: "+",
+			attr: { "aria-label": "Zoom in" },
+		});
+		zoomIn.addEventListener("click", () => void this.zoom(-1));
+
+		if (folderExists) {
+			const cover = toolbar.createEl("button", {
+				cls: "media-tracker-cover",
+				text: "Change Cover",
+			});
+			cover.addEventListener("click", () => void this.onChangeCover());
+		}
+
 		const add = toolbar.createEl("button", {
 			cls: "media-tracker-add",
 			text: toolbarLabel(mode),
@@ -185,6 +235,51 @@ export class MediaTrackerView extends ItemView {
 		const empty = root.createDiv({ cls: "media-tracker-empty" });
 		empty.createEl("p", { text: title });
 		empty.createEl("p", { cls: "media-tracker-empty-detail", text: detail });
+	}
+
+	private async zoom(delta: number): Promise<void> {
+		const current = this.displayedColumns();
+		const next = current + delta;
+		if (next < 1) return;
+		const max = this.maxColumns();
+		if (next > max) return;
+		this.plugin.settings.gridColumns = next;
+		this.applyGridColumns();
+		await this.plugin.persistSettings();
+	}
+
+	private applyGridColumns(): void {
+		const grid = this.contentEl.querySelector(".media-tracker-grid");
+		if (!(grid instanceof HTMLElement)) return;
+		const columns = this.displayedColumns();
+		grid.style.setProperty("--media-tracker-columns", String(columns));
+	}
+
+	private displayedColumns(): number {
+		const max = this.maxColumns();
+		return Math.min(Math.max(this.plugin.settings.gridColumns, 1), max);
+	}
+
+	private maxColumns(): number {
+		const grid = this.contentEl.querySelector(".media-tracker-grid");
+		const width = grid instanceof HTMLElement && grid.clientWidth > 0
+			? grid.clientWidth
+			: this.contentEl.clientWidth;
+		if (width <= 0) return Math.max(1, this.plugin.settings.gridColumns);
+		const gap = grid instanceof HTMLElement ? parseGap(grid) : 16;
+		return Math.max(1, Math.floor((width + gap) / (MIN_CARD_PX + gap)));
+	}
+
+	private registerZoomListeners(): void {
+		this.resizeObserver = new ResizeObserver(() => this.applyGridColumns());
+		this.resizeObserver.observe(this.contentEl);
+		const onWheel = (event: WheelEvent) => {
+			if (!event.ctrlKey && !event.metaKey) return;
+			event.preventDefault();
+			void this.zoom(event.deltaY > 0 ? 1 : -1);
+		};
+		this.contentEl.addEventListener("wheel", onWheel, { passive: false });
+		this.register(() => this.contentEl.removeEventListener("wheel", onWheel));
 	}
 
 	private registerLibraryListeners(): void {
@@ -240,10 +335,16 @@ export class MediaTrackerView extends ItemView {
 
 function toolbarLabel(mode: ReturnType<typeof addToolbarMode>): string {
 	if (mode === "create-folder") return "Create folder";
-	if (mode === "add-new") return "Add new";
-	return "Add next";
+	if (mode === "add-new") return "Add New";
+	return "Add Next";
 }
 
 function libraryLabel(libraryFolder: string): string {
 	return libraryFolder === "" ? "vault root" : libraryFolder;
+}
+
+function parseGap(grid: HTMLElement): number {
+	const raw = window.getComputedStyle(grid).columnGap;
+	const gap = Number.parseFloat(raw);
+	return Number.isFinite(gap) ? gap : 16;
 }
