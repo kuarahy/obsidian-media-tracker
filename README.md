@@ -9,8 +9,10 @@ It is not in the Community plugin **Browse** store. You install it from this rep
 - A grid of collection cards (like image search results).
 - Click a collection to open the notes and nested folders inside it.
 - Each item card has a button (`Read` by default) that toggles `done` on the note. When the item is already read, the button stays labeled **Read** and turns green; click again to unread.
-- **Add next** creates the next numbered note in a series folder, cloning however you already number (`#16` → `#17`, `5` → `6`, `.6` → `.7`, `v6` → `v7`).
-- **Add new** on a parent (Comics, library root) creates a child collection folder and a cover note.
+- **Add Next** creates the next numbered note in a series folder, cloning however you already number (`#16` → `#17`, `5` → `6`, `.6` → `.7`, `v6` → `v7`).
+- **Add New** on a parent (Comics, library root) creates a child collection folder and a `Cover.md` note.
+- **Change Cover** opens that note, or writes a wikilink into it.
+- **− / +** (or Ctrl/Cmd + scroll) changes how many cards fit in a row. Columns always fill the pane.
 
 ## Install into a vault
 
@@ -60,7 +62,7 @@ Settings for this plugin are under **Settings → Media Tracker**.
 
 The default library folder is `Media`. If your vault *is* the library (for example `Comics/` and `Manga/` at the vault root), set **Library folder** to **Vault root**.
 
-If `Media` does not exist, the view says so. **Create folder** makes it; it does not create a note until you press **Add new** or **Add next** again.
+If `Media` does not exist, the view says so. **Create folder** makes it; it does not create a note until you press **Add New** or **Add Next** again.
 
 ## Use the grid
 
@@ -68,10 +70,14 @@ If `Media` does not exist, the view says so. **Create folder** makes it; it does
 - Use the breadcrumb to go back up.
 - Click an item title (or the card) to open the note.
 - Click **Read** (or your label) to set `done: true`. The button stays **Read** and turns green. Click it again to clear `done`.
-- On a parent folder (library root, Comics, anything with subcollections), **Add new** asks for a name and creates that folder plus a folder note (`X-Men/X-Men.md`). Renaming the folder also renames that note.
-- On a series folder, **Add next** creates the next numbered note. It takes the highest trailing number among sibling notes and reuses that file's prefix: `X-Men #16` → `X-Men #17`, `Saga 5` → `Saga 6`, `.6` → `.7`, `v6` → `v7`. If nothing is numbered yet, you get `{folder name} #1`.
+- On a parent folder (library root, Comics, anything with subcollections), **Add New** asks for a name and creates that folder plus `Cover.md` inside it.
+- **Change Cover** on the current folder ensures `Cover.md`, then either opens it (paste or drop an image) or lets you type a vault path / wikilink to write `cover:` on that note.
+- On a series folder, **Add Next** creates the next numbered note. It takes the highest trailing number among sibling notes and reuses that file's prefix: `X-Men #16` → `X-Men #17`, `Saga 5` → `Saga 6`, `.6` → `.7`, `v6` → `v7`. If nothing is numbered yet, you get `{folder name} #1`.
+- **−** adds a column (smaller cards); **+** removes one (larger cards). The grid snaps so a row of cards meets the pane edges. The column count is saved.
 
-The grid opens as a tab in the main workspace. Command palette **Add next item** follows the same Add new / Add next rule as the toolbar, for the open grid folder, or for the folder of the active note if the grid is closed.
+The grid opens as a tab in the main workspace. Command palette **Add next item** follows the same Add New / Add Next rule as the toolbar, for the open grid folder, or for the folder of the active note if the grid is closed.
+
+A **Not synchronized** / invalid-path banner under files comes from **Self-hosted LiveSync** (or Obsidian Sync), not this plugin. Configure ignore rules and allowed paths there. Media Tracker does not move LiveSync’s status UI.
 
 ## Vault layout
 
@@ -81,6 +87,7 @@ Collections can nest. Mixed folders are allowed: subfolders are collection cards
 Media/                          ← default library folder
   Comics/
     X-Men/
+      Cover.md
       X-Men #1.md
       X-Men #16.md
   Manga/
@@ -92,9 +99,9 @@ Media/                          ← default library folder
         Good Girls S01 #1.md
 ```
 
-A note with the same name as its folder is a **folder note** (cover / action for that collection). It is not shown as an item card. **Add new** creates it inside the folder (`X-Men/X-Men.md`). It can also live beside the folder (`Comics/X-Men.md` + `Comics/X-Men/`). If a collection has no cover of its own, the grid uses the first child collection's cover, then the first child's item cover.
+A note named **Cover** inside a collection folder is the cover / action note for that collection. It is not shown as an item card. **Add New** creates `Cover.md`. Older vaults may still use a note named like the folder (`X-Men/X-Men.md`); that still counts and is hidden from the grid. If a collection has no cover of its own, the grid uses a matching file in `assets/covers/`, then the first child collection's cover, then the first child's item cover.
 
-Folders named `assets` or `covers` (any case) are skipped in the grid so cover files are not a collection. Put images in `assets/covers/` rather than the vault root.
+Folders named `assets` or `covers` (any case) are skipped in the grid so attachment files are not a collection. Other folders, including one named **Covers Collection**, are real collections. Images dropped at the vault root are moved into `assets/covers/`.
 
 ## Frontmatter
 
@@ -126,13 +133,14 @@ cover: "[[covers/good-girls.jpg]]"
 | --- | --- | --- |
 | Library folder | `Media` | Only this folder is scanned. **Vault root** scans the whole vault. |
 | Action label | `Read` | Button text when a folder note does not set `action`. |
+| Grid columns | `6` | How many cards per row (clamped so cards stay at least ~110px). Changed from the **− / +** buttons. |
 
 ## Commands
 
 | Command | What it does |
 | --- | --- |
 | Open media tracker | Opens or focuses the grid view in the main workspace |
-| Add next item | **Add new** or **Add next**, matching the open folder |
+| Add next item | **Add New** or **Add Next**, matching the open folder |
 
 ## Repository
 
