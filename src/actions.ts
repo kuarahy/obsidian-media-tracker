@@ -1,5 +1,5 @@
 import { App, TFile, TFolder } from "obsidian";
-import { isImageFile } from "./cover";
+import { findCoverFileForCollection, isImageFile } from "./cover";
 import { COVER_FOLDER, getFolderByPath, listItemBasenames, readDone } from "./library";
 import { nextNoteBasename } from "./naming";
 
@@ -55,7 +55,11 @@ export async function createCollection(app: App, parent: TFolder, rawName: strin
 
 	const notePath = joinPath(folder, `${name}.md`);
 	if (!app.vault.getAbstractFileByPath(notePath)) {
-		await app.vault.create(notePath, "---\n---\n");
+		const coverFile = findCoverFileForCollection(app, name);
+		const body = coverFile
+			? `---\ncover: "[[${coverFile.path}]]"\n---\n`
+			: "---\n---\n";
+		await app.vault.create(notePath, body);
 	}
 	return folder;
 }

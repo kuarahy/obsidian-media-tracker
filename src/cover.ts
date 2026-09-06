@@ -1,5 +1,5 @@
 import { App, TFile, TFolder } from "obsidian";
-import { findFolderNote, getFolderByPath, isFolderNote, isHiddenCollectionFolder } from "./library";
+import { findFolderNote, getFolderByPath, isFolderNote, isHiddenCollectionFolder, COVER_FOLDER } from "./library";
 
 const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp", "bmp", "svg"]);
 
@@ -35,6 +35,9 @@ function resolveCollectionCoverWalk(app: App, folderPath: string, seen: Set<stri
 
 	const fromFolderImage = firstImageInFolder(folder);
 	if (fromFolderImage) return fromFolderImage;
+
+	const fromAssets = coverFromAssetsFolder(app, folder.name);
+	if (fromAssets) return fromAssets;
 
 	const children = [...folder.children].sort((a, b) =>
 		a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }),
@@ -80,6 +83,30 @@ function firstImageInFolder(folder: TFolder): string | null {
 		.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }));
 	const first = images[0];
 	return first ? folder.vault.getResourcePath(first) : null;
+}
+
+export function findCoverFileForCollection(app: App, collectionName: string): TFile | null {
+	const folder = getFolderByPath(app, COVER_FOLDER);
+	if (!folder) return null;
+	const needle = slug(collectionName);
+	if (needle === "") return null;
+	const images = folder.children
+		.filter((child): child is TFile => child instanceof TFile && isImageFile(child))
+		.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }));
+	for (const image of images) {
+		const hay = slug(image.name.replace(/\.[^.]+$/, ""));
+		if (hay.startsWith(needle) || (needle.startsWith(hay) && hay.length >= 3)) return image;
+	}
+	return null;
+}
+
+function coverFromAssetsFolder(app: App, collectionName: string): string | null {
+	const file = findCoverFileForCollection(app, collectionName);
+	return file ? file.vault.getResourcePath(file) : null;
+}
+
+function slug(value: string): string {
+	return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
 function resolveCoverValue(app: App, source: TFile, value: string): string | null {
