@@ -1,5 +1,7 @@
 # Media Tracker
 
+![Library grid of comic covers](docs/library.jpg)
+
 Obsidian community plugin. Folders are collections. Notes are items. One card grid for comics, manga, shows, or anything else with the same shape.
 
 It is not in the Community plugin **Browse** store. You install it from this repo.
