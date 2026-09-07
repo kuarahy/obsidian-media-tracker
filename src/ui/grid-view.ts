@@ -17,6 +17,8 @@ import { VIEW_TYPE_MEDIA_TRACKER } from "../types";
 import { applyItemDoneState, createCollectionCard, createItemCard } from "./cards";
 import { promptForCover, promptForName } from "./name-modal";
 
+// ninja: homepage = library root as rows; drill-in is the snapping grid. History is in-view only.
+
 const MIN_CARD_PX = 110;
 const HISTORY_CAP = 50;
 

@@ -1,3 +1,4 @@
+// ninja: view type matches plugin id; workspace.json would keep a second identity if we left media-tracker.
 export const VIEW_TYPE_MEDIA_TRACKER = "pegasus-media-tracker";
 
 export type LibraryNode = CollectionNode | ItemNode;

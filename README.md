@@ -15,13 +15,15 @@ If this plugin helps you, you can support development here:
 
 ## What you get
 
-- A grid of collection cards (like image search results).
-- Click a collection to open the notes and nested folders inside it.
+- A homepage of horizontal rows (one per top-level collection under your library folder, for example Library, Shows, Books). Click a row title or a card to drill in.
+- Click a collection to open the notes and nested folders inside it. Mouse back / forward (browser-style) walks that history without using the breadcrumb.
 - Each item card has a button (`Read` by default) that toggles `done` on the note. When the item is already read, the button stays labeled **Read** and turns green; click again to unread.
 - **Add Next** creates the next numbered note in a series folder, cloning however you already number (`#16` → `#17`, `5` → `6`, `.6` → `.7`, `v6` → `v7`).
-- **Add New** on a parent (Comics, library root) creates a child collection folder and a `Cover.md` note.
-- **Change Cover** opens that note, or writes a wikilink into it.
+- **Add New** on a parent (Comics, library root) creates a child collection folder and a `Cover.md` note. Titles may include `: ` (Supergirl: Woman of Tomorrow); the folder name is a safe slug.
+- **Change Title** writes the display name on `Cover.md`. It does not rename the folder.
+- **Change Cover** opens that note, or writes a wikilink into it. Covers may be png, jpg, webp, avif, and other image types Obsidian can show.
 - **− / +** (or Ctrl/Cmd + scroll) changes how many cards fit in a row. Columns always fill the pane.
+- Obsidian can open this homepage on startup (on by default; turn it off in settings).
 
 ## Install into a vault
 
@@ -67,7 +69,7 @@ After it is enabled:
 - Left ribbon: the grid icon (**Open Pegasus Media Tracker**), or
 - Command palette (`Ctrl+P` / `Cmd+P`): **Open Pegasus Media Tracker**
 
-Settings for this plugin are under **Settings → Pegasus Media Tracker**.
+Settings for this plugin are under **Settings → Pegasus Media Tracker**. **Open on startup** is on by default.
 
 ### If the grid is empty
 
@@ -77,11 +79,13 @@ If `Media` does not exist, the view says so. **Create folder** makes it; it does
 
 ## Use the grid
 
+- The library root is the homepage: each child collection is a labeled row of its cards. Click the row title to open that collection as a grid.
 - Click a collection card to drill in.
-- Use the breadcrumb to go back up.
+- Mouse back / forward (side buttons) goes to the previous / next collection you opened. Opening a note is not a history step. The breadcrumb still works.
 - Click an item title (or the card) to open the note.
 - Click **Read** (or your label) to set `done: true`. The button stays **Read** and turns green. Click it again to clear `done`.
-- On a parent folder (library root, Comics, anything with subcollections), **Add New** asks for a name and creates that folder plus `Cover.md` inside it.
+- On a parent folder (library root, Comics, anything with subcollections), **Add New** asks for a name and creates that folder plus `Cover.md` inside it. `:` and other characters that Windows forbids in paths are kept as the card title; the folder name is slugged (`Supergirl: Woman of Tomorrow` → `Supergirl - Woman of Tomorrow`).
+- **Change Title** sets `title:` on `Cover.md` for the current folder. The folder path does not change.
 - **Change Cover** on the current folder ensures `Cover.md`, then either opens it (paste or drop an image) or lets you type a vault path / wikilink to write `cover:` on that note.
 - On a series folder, **Add Next** creates the next numbered note. It takes the highest trailing number among sibling notes and reuses that file's prefix: `X-Men #16` → `X-Men #17`, `Saga 5` → `Saga 6`, `.6` → `.7`, `v6` → `v7`. If nothing is numbered yet, you get `{folder name} #1`.
 - **−** adds a column (smaller cards); **+** removes one (larger cards). The grid snaps so a row of cards meets the pane edges. The column count is saved.
@@ -125,25 +129,27 @@ done: false
 ---
 ```
 
-`cover` may be a wikilink, a vault path, or an `http(s)` URL. If it is missing, the plugin uses the first embedded image in the note, then the first image file in the same folder. No covers are downloaded from the internet.
+`cover` may be a wikilink, a vault path, or an `http(s)` URL. Image files include png, jpg, jpeg, gif, webp, bmp, svg, and avif. If `cover` is missing, the plugin uses the first embedded image in the note, then the first image file in the same folder. No covers are downloaded from the internet.
 
 Collection folder note (optional):
 
 ```yaml
 ---
+title: "Supergirl: Woman of Tomorrow"
 action: Watched
 cover: "[[covers/good-girls.jpg]]"
 ---
 ```
 
-`action` overrides the button label for items in that folder only.
+`title` is the card and breadcrumb label. If it is missing, the folder name is used. `action` overrides the button label for items in that folder only.
 
 ## Settings
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
 | Library folder | `Media` | Only this folder is scanned. **Vault root** scans the whole vault. |
-| Action label | `Read` | Button text when a folder note does not set `action`. |
+| Open on startup | on | Opens the homepage when Obsidian starts. Turn off if you want to land in notes. |
+| Action label | `Read` | Button text on item cards. A collection folder note can override this with an action property. |
 | Grid columns | `6` | How many cards per row (clamped so cards stay at least ~110px). Changed from the **− / +** buttons. |
 
 ## Commands

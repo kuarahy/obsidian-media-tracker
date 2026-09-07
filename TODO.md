@@ -11,4 +11,4 @@ New:
 - [x] AVIF support
 
 Code clarity:
-- [ ] We need comments to understand which functions do what, code now is very undocumented, we may need more documentation on how to use the app as well on the repository
+- [x] We need comments to understand which functions do what, code now is very undocumented, we may need more documentation on how to use the app as well on the repository

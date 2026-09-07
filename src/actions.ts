@@ -64,6 +64,7 @@ export async function setCollectionTitle(app: App, file: TFile, raw: string): Pr
 	if (title === "") {
 		throw new Error("Enter a collection name.");
 	}
+	// ninja: title is a label on Cover.md; we do not rename the folder (wikilinks, history, LiveSync).
 	await app.fileManager.processFrontMatter(file, (frontmatter) => {
 		frontmatter.title = title;
 	});
