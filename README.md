@@ -172,4 +172,11 @@ Requires Node 18+. No extra runtime dependencies; Obsidian APIs only.
 
 ## License
 
-See `LICENSE.md`. Use, copy, modify, and distribute freely, provided you always credit **Lucas Perez** (`@kuarahy`) and this repo: [kuarahy/obsidian-media-tracker](https://github.com/kuarahy/obsidian-media-tracker).
+See `LICENSE.md`. Copyright (c) 2026 Lucas Perez (GitHub: kuarahy).
+
+Repository: https://github.com/kuarahy/pegasus-media-tracker
+
+Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that copies and derivative works always include the following attribution, in documentation and other user-facing notices:
+
+    Pegasus Media Tracker by Lucas Perez (@kuarahy)
+    https://github.com/kuarahy/obsidian-media-tracker
