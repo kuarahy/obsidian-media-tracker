@@ -2,7 +2,7 @@ TODO
 
 - [x] Bug: list of comics under Comics was substituted by something else, the grid disappeared
 ![alt text](image-1.png)
-- [ ] Bug: Cannot add : to collection names in the prompt eg Supergirl: Woman of Tomorrow throws errors
+- [x] Bug: Cannot add : to collection names in the prompt eg Supergirl: Woman of Tomorrow throws errors
 ![alt text](image.png) -- same issue still persists
 - [x] Homepage sections Library, Shows, Books as different rows --> let's revert this feature, needs grooming
 - [x] Bug: buttons in homepage for Comics, Covers Collection, Manga are displaying without spacing on left and right of the text

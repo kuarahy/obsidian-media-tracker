@@ -52,10 +52,7 @@ export async function createCollection(app: App, parent: TFolder, rawName: strin
 		throw new Error(`Could not create folder: ${path}`);
 	}
 
-	const note = await ensureCoverNote(app, folder);
-	if (title !== name) {
-		await setCollectionTitle(app, note, title);
-	}
+	await ensureCoverNote(app, folder, title);
 	return folder;
 }
 
@@ -83,15 +80,22 @@ export async function syncFolderNoteOnRename(app: App, folder: TFolder, oldPath:
 	await renameIfFree(app, joinPath(parent, `${oldName}.md`), joinPath(parent, `${newName}.md`));
 }
 
-export async function ensureCoverNote(app: App, folder: TFolder): Promise<TFile> {
+export async function ensureCoverNote(app: App, folder: TFolder, title?: string): Promise<TFile> {
 	const existing = findFolderNote(folder);
-	if (existing) return existing;
+	if (existing) {
+		if (title && title !== folder.name) await setCollectionTitle(app, existing, title);
+		return existing;
+	}
 
 	const coverFile = findCoverFileForCollection(app, folder.name);
-	const body = coverFile
-		? `---\ncover: "[[${coverFile.path}]]"\n---\n`
-		: "---\n---\n";
-	return app.vault.create(joinPath(folder, `${COVER_NOTE_STEM}.md`), body);
+	const lines = ["---"];
+	if (title && title !== folder.name) {
+		// ninja: quoted YAML at create so `:` in titles never depends on a later processFrontMatter.
+		lines.push(`title: ${JSON.stringify(title)}`);
+	}
+	if (coverFile) lines.push(`cover: ${JSON.stringify(`[[${coverFile.path}]]`)}`);
+	lines.push("---", "");
+	return app.vault.create(joinPath(folder, `${COVER_NOTE_STEM}.md`), `${lines.join("\n")}\n`);
 }
 
 export async function setCoverOnNote(app: App, file: TFile, raw: string): Promise<void> {
@@ -143,10 +147,10 @@ function uniqueChildName(app: App, parent: TFolder, slug: string): string {
 	return name;
 }
 
-// ninja: `:` becomes " - " so comic subtitles stay readable; other illegal path chars become "-".
+// ninja: `:` and `：` become " - " so comic subtitles stay readable; other illegal path chars become "-".
 function folderSlug(title: string): string {
 	const slug = title
-		.replace(/:/g, " - ")
+		.replace(/[:：]/g, " - ")
 		.replace(/[\\/:*?"<>|]/g, "-")
 		.replace(/\s+/g, " ")
 		.replace(/-\s*-/g, "-")
