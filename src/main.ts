@@ -22,6 +22,11 @@ export default class MediaTrackerPlugin extends Plugin {
 		});
 		this.addSettingTab(new MediaTrackerSettingTab(this.app, this));
 		registerCommands(this);
+		// ninja: default on so Obsidian lands on the homepage; setting off because stealing focus is hostile.
+		this.app.workspace.onLayoutReady(() => {
+			if (!this.settings.openOnStartup) return;
+			void this.activateHomepage();
+		});
 		this.registerEvent(
 			this.app.vault.on("rename", (file, oldPath) => {
 				if (file instanceof TFolder) {
@@ -64,6 +69,14 @@ export default class MediaTrackerPlugin extends Plugin {
 		const leaf = this.app.workspace.getLeaf("tab");
 		await leaf.setViewState({ type: VIEW_TYPE_MEDIA_TRACKER, active: true });
 		await this.app.workspace.revealLeaf(leaf);
+	}
+
+	private async activateHomepage(): Promise<void> {
+		await this.activateView();
+		for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE_MEDIA_TRACKER)) {
+			const view = leaf.view;
+			if (view instanceof MediaTrackerView) view.openHomepage();
+		}
 	}
 
 	private refreshViews(): void {

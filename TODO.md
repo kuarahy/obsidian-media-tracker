@@ -5,7 +5,7 @@ New:
 - [x] Bug: Cannot add : to collection names in the prompt eg Supergirl: Woman of Tomorrow throws errors
 ![alt text](image.png)
 - [x] Change Title button alongside Change Cover and Add Next
-- [ ] Start Obsidian at Media Tracker homepage
+- [x] Start Obsidian at Media Tracker homepage
 - [x] Homepage sections Library, Shows, Books as different rows
 - [x] Feature: Name change to Pegasus Media Tracker
 - [x] AVIF support
