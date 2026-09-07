@@ -57,7 +57,7 @@ export class MediaTrackerSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Open on startup")
-			.setDesc("Open the Pegasus Media Tracker homepage when Obsidian starts.")
+			.setDesc("Open the Pegasus Media Tracker library grid when Obsidian starts.")
 			.addToggle((toggle) => {
 				toggle.setValue(this.plugin.settings.openOnStartup);
 				toggle.onChange(async (value) => {

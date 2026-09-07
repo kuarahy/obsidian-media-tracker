@@ -15,15 +15,14 @@ If this plugin helps you, you can support development here:
 
 ## What you get
 
-- A homepage of horizontal rows (one per top-level collection under your library folder, for example Library, Shows, Books). Click a row title or a card to drill in.
-- Click a collection to open the notes and nested folders inside it. Mouse back / forward (browser-style) walks that history without using the breadcrumb.
+- A grid of collection cards (like image search results). Click a collection to open the notes and nested folders inside it. Mouse back / forward (browser-style) walks that history without using the breadcrumb.
 - Each item card has a button (`Read` by default) that toggles `done` on the note. When the item is already read, the button stays labeled **Read** and turns green; click again to unread.
 - **Add Next** creates the next numbered note in a series folder, cloning however you already number (`#16` → `#17`, `5` → `6`, `.6` → `.7`, `v6` → `v7`).
 - **Add New** on a parent (Comics, library root) creates a child collection folder and a `Cover.md` note. Titles may include `: ` (Supergirl: Woman of Tomorrow); the folder name is a safe slug.
 - **Change Title** writes the display name on `Cover.md`. It does not rename the folder.
 - **Change Cover** opens that note, or writes a wikilink into it. Covers may be png, jpg, webp, avif, and other image types Obsidian can show.
 - **− / +** (or Ctrl/Cmd + scroll) changes how many cards fit in a row. Columns always fill the pane.
-- Obsidian can open this homepage on startup (on by default; turn it off in settings).
+- Obsidian can open this grid on startup (on by default; turn it off in settings).
 
 ## Install into a vault
 
@@ -79,7 +78,6 @@ If `Media` does not exist, the view says so. **Create folder** makes it; it does
 
 ## Use the grid
 
-- The library root is the homepage: each child collection is a labeled row of its cards. Click the row title to open that collection as a grid.
 - Click a collection card to drill in.
 - Mouse back / forward (side buttons) goes to the previous / next collection you opened. Opening a note is not a history step. The breadcrumb still works.
 - Click an item title (or the card) to open the note.
@@ -148,7 +146,7 @@ cover: "[[covers/good-girls.jpg]]"
 | Setting | Default | Meaning |
 | --- | --- | --- |
 | Library folder | `Media` | Only this folder is scanned. **Vault root** scans the whole vault. |
-| Open on startup | on | Opens the homepage when Obsidian starts. Turn off if you want to land in notes. |
+| Open on startup | on | Opens the library grid when Obsidian starts. Turn off if you want to land in notes. |
 | Action label | `Read` | Button text on item cards. A collection folder note can override this with an action property. |
 | Grid columns | `6` | How many cards per row (clamped so cards stay at least ~110px). Changed from the **− / +** buttons. |
 

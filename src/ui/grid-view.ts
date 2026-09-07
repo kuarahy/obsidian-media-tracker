@@ -1,11 +1,10 @@
-import { ItemView, Notice, TAbstractFile, TFile, TFolder, WorkspaceLeaf } from "obsidian";
+import { ItemView, Notice, TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
 import { createCollection, createNextNote, ensureCoverNote, ensureFolder, setCollectionTitle, setCoverOnNote, toggleItemDone } from "../actions";
 import { resolveCollectionCover, resolveItemCover } from "../cover";
 import {
 	addToolbarMode,
 	breadcrumbSegments,
 	getFolderByPath,
-	isLibraryRoot,
 	isPathInLibrary,
 	listChildren,
 	readActionLabel,
@@ -17,7 +16,7 @@ import { VIEW_TYPE_MEDIA_TRACKER } from "../types";
 import { applyItemDoneState, createCollectionCard, createItemCard } from "./cards";
 import { promptForCover, promptForName } from "./name-modal";
 
-// ninja: homepage = library root as rows; drill-in is the snapping grid. History is in-view only.
+// ninja: library root is the same snapping grid as every other folder. History is in-view only.
 
 const MIN_CARD_PX = 110;
 const HISTORY_CAP = 50;
@@ -161,11 +160,6 @@ export class MediaTrackerView extends ItemView {
 			return;
 		}
 
-		if (isLibraryRoot(this.currentFolderPath, libraryPath)) {
-			this.renderHomepage(root, folder, mode);
-			return;
-		}
-
 		const nodes = listChildren(this.app, folder);
 		if (nodes.length === 0) {
 			this.renderMessage(
@@ -183,70 +177,6 @@ export class MediaTrackerView extends ItemView {
 		const grid = root.createDiv({ cls: "media-tracker-grid" });
 		this.renderCards(grid, nodes, actionLabel);
 		this.applyGridColumns();
-	}
-
-	// ninja: homepage is library root as one row per child collection — not hardcoded Library/Shows/Books.
-	private renderHomepage(
-		root: HTMLElement,
-		folder: TFolder,
-		mode: ReturnType<typeof addToolbarMode>,
-	): void {
-		const nodes = listChildren(this.app, folder);
-		if (nodes.length === 0) {
-			this.renderMessage(
-				root,
-				"This collection is empty.",
-				mode === "add-new"
-					? "Add New creates a collection folder and a Cover note."
-					: "Add Next creates the first numbered note.",
-			);
-			this.applyGridColumns();
-			return;
-		}
-
-		const home = root.createDiv({ cls: "media-tracker-home" });
-		const items = nodes.filter((node): node is ItemNode => node.kind === "item");
-		const collections = nodes.filter((node) => node.kind === "collection");
-		const rootTitle =
-			this.plugin.settings.libraryFolder === "" ? "Library" : readCollectionTitle(this.app, folder);
-
-		if (items.length > 0) {
-			this.renderHomeRow(home, rootTitle, items, folder);
-		}
-
-		for (const node of collections) {
-			const child = getFolderByPath(this.app, node.path);
-			if (!child) continue;
-			this.renderHomeRow(home, node.name, listChildren(this.app, child), child, () =>
-				this.openFolder(node.path),
-			);
-		}
-		this.applyGridColumns();
-	}
-
-	private renderHomeRow(
-		parent: HTMLElement,
-		title: string,
-		nodes: LibraryNode[],
-		folder: TFolder,
-		onTitle?: () => void,
-	): void {
-		const row = parent.createDiv({ cls: "media-tracker-home-row" });
-		if (onTitle) {
-			const heading = row.createEl("button", { cls: "media-tracker-home-row-title", text: title });
-			heading.addEventListener("click", onTitle);
-		} else {
-			row.createEl("h2", { cls: "media-tracker-home-row-title", text: title });
-		}
-
-		if (nodes.length === 0) {
-			row.createEl("p", { cls: "media-tracker-empty-detail", text: "This collection is empty." });
-			return;
-		}
-
-		const strip = row.createDiv({ cls: "media-tracker-home-strip" });
-		const actionLabel = readActionLabel(this.app, folder, this.plugin.settings.actionLabel);
-		this.renderCards(strip, nodes, actionLabel);
 	}
 
 	private renderCards(parent: HTMLElement, nodes: LibraryNode[], actionLabel: string): void {
@@ -400,7 +330,7 @@ export class MediaTrackerView extends ItemView {
 	}
 
 	private maxColumns(): number {
-		const sample = this.contentEl.querySelector(".media-tracker-grid, .media-tracker-home-strip");
+		const sample = this.contentEl.querySelector(".media-tracker-grid");
 		const width =
 			sample instanceof HTMLElement && sample.clientWidth > 0
 				? sample.clientWidth

@@ -20,7 +20,7 @@ export function isPathInLibrary(path: string, libraryFolder: string): boolean {
 	return target === root || target.startsWith(`${root}/`);
 }
 
-// ninja: homepage is this path — rows of children, not the snapping grid.
+// ninja: library root is the same path as settings.libraryFolder (startup lands here).
 export function isLibraryRoot(folderPath: string, libraryFolder: string): boolean {
 	return normalizeFolderPath(folderPath) === normalizeFolderPath(libraryFolder);
 }
