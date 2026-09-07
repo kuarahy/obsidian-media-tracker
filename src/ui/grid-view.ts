@@ -17,12 +17,15 @@ import { applyItemDoneState, createCollectionCard, createItemCard } from "./card
 import { promptForCover, promptForName } from "./name-modal";
 
 const MIN_CARD_PX = 110;
+const HISTORY_CAP = 50;
 
 export class MediaTrackerView extends ItemView {
 	plugin: MediaTrackerPluginApi;
 	currentFolderPath: string;
 	private debounceHandle: number | null = null;
 	private resizeObserver: ResizeObserver | null = null;
+	private past: string[] = [];
+	private future: string[] = [];
 
 	constructor(leaf: WorkspaceLeaf, plugin: MediaTrackerPluginApi) {
 		super(leaf);
@@ -45,6 +48,7 @@ export class MediaTrackerView extends ItemView {
 	async onOpen(): Promise<void> {
 		this.registerLibraryListeners();
 		this.registerZoomListeners();
+		this.registerHistoryListeners();
 		await this.plugin.ensureRootCoversRelocated();
 		this.render();
 	}
@@ -56,7 +60,43 @@ export class MediaTrackerView extends ItemView {
 	}
 
 	openFolder(path: string): void {
+		this.navigate(path, true);
+	}
+
+	openHomepage(): void {
+		this.navigate(this.plugin.settings.libraryFolder, false);
+	}
+
+	// ninja: in-view stack, not workspace leaf history. Opening a note is not a step.
+	private navigate(path: string, record: boolean): void {
+		if (path === this.currentFolderPath) {
+			this.render();
+			return;
+		}
+		if (record) {
+			this.past.push(this.currentFolderPath);
+			if (this.past.length > HISTORY_CAP) this.past.shift();
+			this.future = [];
+		}
 		this.currentFolderPath = path;
+		this.render();
+	}
+
+	private goBack(): void {
+		const prev = this.past.pop();
+		if (prev === undefined) return;
+		this.future.push(this.currentFolderPath);
+		if (this.future.length > HISTORY_CAP) this.future.shift();
+		this.currentFolderPath = prev;
+		this.render();
+	}
+
+	private goForward(): void {
+		const next = this.future.pop();
+		if (next === undefined) return;
+		this.past.push(this.currentFolderPath);
+		if (this.past.length > HISTORY_CAP) this.past.shift();
+		this.currentFolderPath = next;
 		this.render();
 	}
 
@@ -307,6 +347,29 @@ export class MediaTrackerView extends ItemView {
 		this.register(() => this.contentEl.removeEventListener("wheel", onWheel));
 	}
 
+	private registerHistoryListeners(): void {
+		const onMouseDown = (event: MouseEvent) => {
+			if (event.button === 3 || event.button === 4) event.preventDefault();
+		};
+		const onMouseUp = (event: MouseEvent) => {
+			if (event.button === 3) {
+				event.preventDefault();
+				this.goBack();
+				return;
+			}
+			if (event.button === 4) {
+				event.preventDefault();
+				this.goForward();
+			}
+		};
+		this.contentEl.addEventListener("mousedown", onMouseDown);
+		this.contentEl.addEventListener("mouseup", onMouseUp);
+		this.register(() => {
+			this.contentEl.removeEventListener("mousedown", onMouseDown);
+			this.contentEl.removeEventListener("mouseup", onMouseUp);
+		});
+	}
+
 	private registerLibraryListeners(): void {
 		const onFile = (file: TAbstractFile) => this.scheduleRenderFor(file.path);
 		this.registerEvent(this.app.vault.on("create", onFile));
@@ -319,16 +382,19 @@ export class MediaTrackerView extends ItemView {
 				) {
 					this.currentFolderPath = this.plugin.settings.libraryFolder;
 				}
+				this.dropHistoryUnder(file.path);
 				this.scheduleRenderFor(file.path);
 			}),
 		);
 		this.registerEvent(
 			this.app.vault.on("rename", (file, oldPath) => {
+				const nextPath = file.path === "/" ? "" : file.path;
 				if (this.currentFolderPath === oldPath) {
-					this.currentFolderPath = file.path === "/" ? "" : file.path;
+					this.currentFolderPath = nextPath;
 				} else if (this.currentFolderPath.startsWith(`${oldPath}/`)) {
-					this.currentFolderPath = `${file.path}${this.currentFolderPath.slice(oldPath.length)}`;
+					this.currentFolderPath = `${nextPath}${this.currentFolderPath.slice(oldPath.length)}`;
 				}
+				this.rewriteHistory(oldPath, nextPath);
 				this.scheduleRenderFor(file.path);
 				this.scheduleRenderFor(oldPath);
 			}),
@@ -336,6 +402,22 @@ export class MediaTrackerView extends ItemView {
 		this.registerEvent(
 			this.app.metadataCache.on("changed", (file) => this.scheduleRenderFor(file.path)),
 		);
+	}
+
+	private dropHistoryUnder(path: string): void {
+		const gone = (entry: string) => entry === path || entry.startsWith(`${path}/`);
+		this.past = this.past.filter((entry) => !gone(entry));
+		this.future = this.future.filter((entry) => !gone(entry));
+	}
+
+	private rewriteHistory(oldPath: string, newPath: string): void {
+		const rewrite = (entry: string): string => {
+			if (entry === oldPath) return newPath;
+			if (entry.startsWith(`${oldPath}/`)) return `${newPath}${entry.slice(oldPath.length)}`;
+			return entry;
+		};
+		this.past = this.past.map(rewrite);
+		this.future = this.future.map(rewrite);
 	}
 
 	private scheduleRenderFor(path: string): void {
