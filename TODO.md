@@ -1,14 +1,14 @@
 TODO
 
-New: 
-- [x] Feature: navigation, mouse buttons should accept navigation like browsers, if you backwards and forwards options to make sure navigation is faster. eg if I click a collection, I can press the backwards to see the all collections and then press forward on my mouse again and seeing the collection where I was at without depending on clicking the Library button or the collection to go anywhere.
-- [x] Bug: Cannot add : to collection names in the prompt eg Supergirl: Woman of Tomorrow throws errors
-![alt text](image.png)
-- [x] Change Title button alongside Change Cover and Add Next
-- [x] Start Obsidian at Media Tracker homepage
-- [x] Homepage sections Library, Shows, Books as different rows
-- [x] Feature: Name change to Pegasus Media Tracker
-- [x] AVIF support
+- [ ] Bug: list of comics under Comics was substituted by something else, the grid disappeared
+![alt text](image-1.png)
+- [ ] Bug: Cannot add : to collection names in the prompt eg Supergirl: Woman of Tomorrow throws errors
+![alt text](image.png) -- same issue still persists
+- [x] Homepage sections Library, Shows, Books as different rows --> let's revert this feature, needs grooming
+- [ ] Bug: buttons in homepage for Comics, Covers Collection, Manga are displaying without spacing on left and right of the text
+![alt text](image-2.png)
+- [ ] Bug: Read button enabled on Covers Collection (it's a library, libraries don't have Read buttons)
+![alt text](image-3.png)
 
-Code clarity:
+Needs Developer Validation:
 - [x] We need comments to understand which functions do what, code now is very undocumented, we may need more documentation on how to use the app as well on the repository
