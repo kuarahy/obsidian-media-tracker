@@ -5,6 +5,7 @@ import {
 	addToolbarMode,
 	breadcrumbSegments,
 	getFolderByPath,
+	isLibraryRoot,
 	isPathInLibrary,
 	listChildren,
 	readActionLabel,
@@ -215,6 +216,7 @@ export class MediaTrackerView extends ItemView {
 	}
 
 	private async onChangeTitle(): Promise<void> {
+		if (isLibraryRoot(this.currentFolderPath, this.plugin.settings.libraryFolder)) return;
 		const folder = getFolderByPath(this.app, this.currentFolderPath);
 		if (!folder) return;
 		try {
@@ -289,11 +291,14 @@ export class MediaTrackerView extends ItemView {
 		zoomIn.addEventListener("click", () => void this.zoom(-1));
 
 		if (folderExists) {
-			const title = toolbar.createEl("button", {
-				cls: "media-tracker-title",
-				text: "Change Title",
-			});
-			title.addEventListener("click", () => void this.onChangeTitle());
+			// ninja: title labels a collection; library root is the scan root, not a child with a parent folder.
+			if (!isLibraryRoot(this.currentFolderPath, this.plugin.settings.libraryFolder)) {
+				const title = toolbar.createEl("button", {
+					cls: "media-tracker-title",
+					text: "Change Title",
+				});
+				title.addEventListener("click", () => void this.onChangeTitle());
+			}
 			const cover = toolbar.createEl("button", {
 				cls: "media-tracker-cover",
 				text: "Change Cover",

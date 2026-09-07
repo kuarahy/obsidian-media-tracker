@@ -19,7 +19,7 @@ If this plugin helps you, you can support development here:
 - Each item card has a button (`Read` by default) that toggles `done` on the note. When the item is already read, the button stays labeled **Read** and turns green; click again to unread.
 - **Add Next** creates the next numbered note in a series folder, cloning however you already number (`#16` → `#17`, `5` → `6`, `.6` → `.7`, `v6` → `v7`).
 - **Add New** on a parent (Comics, library root) creates a child collection folder and a `Cover.md` note. Titles may include `: ` (Supergirl: Woman of Tomorrow); the folder name is a safe slug.
-- **Change Title** writes the display name on `Cover.md`. It does not rename the folder.
+- **Change Title** writes the display name on `Cover.md` for a collection (not the library root). It does not rename the folder.
 - **Change Cover** opens that note, or writes a wikilink into it. Covers may be png, jpg, webp, avif, and other image types Obsidian can show.
 - **− / +** (or Ctrl/Cmd + scroll) changes how many cards fit in a row. Columns always fill the pane.
 - Obsidian can open this grid on startup (on by default; turn it off in settings).
@@ -83,7 +83,7 @@ If `Media` does not exist, the view says so. **Create folder** makes it; it does
 - Click an item title (or the card) to open the note.
 - Click **Read** (or your label) to set `done: true` on an issue in a series folder. Libraries (library root, Comics, Covers Collection, and other top-level folders) do not show Read. The button stays **Read** and turns green. Click it again to clear `done`.
 - On a parent folder (library root, Comics, anything with subcollections), **Add New** asks for a name and creates that folder plus `Cover.md` inside it. `:` and other characters that Windows forbids in paths are kept as the card title; the folder name is slugged (`Supergirl: Woman of Tomorrow` → `Supergirl - Woman of Tomorrow`). Use **Add New** or **Change Title** for a colon in the title. Renaming the folder in the file tree cannot contain `:`.
-- **Change Title** sets `title:` on `Cover.md` for the current folder. The folder path does not change.
+- **Change Title** sets `title:` on `Cover.md` for the current collection. It is hidden on the library root. The folder path does not change.
 - **Change Cover** on the current folder ensures `Cover.md`, then either opens it (paste or drop an image) or lets you type a vault path / wikilink to write `cover:` on that note.
 - On a series folder, **Add Next** creates the next numbered note. It takes the highest trailing number among sibling notes and reuses that file's prefix: `X-Men #16` → `X-Men #17`, `Saga 5` → `Saga 6`, `.6` → `.7`, `v6` → `v7`. If nothing is numbered yet, you get `{folder name} #1`.
 - **−** adds a column (smaller cards); **+** removes one (larger cards). The grid snaps so a row of cards meets the pane edges. The column count is saved.
