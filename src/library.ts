@@ -88,6 +88,16 @@ export function readActionLabel(app: App, folder: TFolder, fallback: string): st
 	return trimmed === "" ? fallback : trimmed;
 }
 
+// ninja: Cover.md `title` is the card label; folder.name is only the path slug.
+export function readCollectionTitle(app: App, folder: TFolder): string {
+	const note = findFolderNote(folder);
+	if (!note) return folder.name;
+	const title = app.metadataCache.getFileCache(note)?.frontmatter?.title;
+	if (typeof title !== "string") return folder.name;
+	const trimmed = title.trim();
+	return trimmed === "" ? folder.name : trimmed;
+}
+
 export function listItemBasenames(folder: TFolder): string[] {
 	const names: string[] = [];
 	for (const child of folder.children) {
@@ -108,7 +118,7 @@ export function listChildren(app: App, folder: TFolder): LibraryNode[] {
 	for (const child of children) {
 		if (child instanceof TFolder) {
 			if (isHiddenCollectionFolder(child.name)) continue;
-			nodes.push({ kind: "collection", name: child.name, path: child.path });
+			nodes.push({ kind: "collection", name: readCollectionTitle(app, child), path: child.path });
 			continue;
 		}
 		if (child instanceof TFile && child.extension === "md" && !isFolderNote(child, folder)) {
@@ -131,10 +141,12 @@ export function listVaultFolderPaths(app: App): string[] {
 	return out;
 }
 
-export function breadcrumbSegments(folderPath: string, libraryFolder: string): BreadcrumbSegment[] {
+export function breadcrumbSegments(app: App, folderPath: string, libraryFolder: string): BreadcrumbSegment[] {
 	const root = normalizeFolderPath(libraryFolder);
 	const current = normalizeFolderPath(folderPath);
-	const rootName = root === "" ? "Library" : (root.split("/").pop() ?? root);
+	const rootFolder = getFolderByPath(app, root);
+	const rootName =
+		root === "" ? "Library" : rootFolder ? readCollectionTitle(app, rootFolder) : (root.split("/").pop() ?? root);
 	const segments: BreadcrumbSegment[] = [{ name: rootName, path: root }];
 
 	if (current === root) return segments;
@@ -143,7 +155,8 @@ export function breadcrumbSegments(folderPath: string, libraryFolder: string): B
 	let acc = root;
 	for (const part of rest.split("/").filter(Boolean)) {
 		acc = acc === "" ? part : `${acc}/${part}`;
-		segments.push({ name: part, path: acc });
+		const folder = getFolderByPath(app, acc);
+		segments.push({ name: folder ? readCollectionTitle(app, folder) : part, path: acc });
 	}
 	return segments;
 }

@@ -3,7 +3,7 @@ import { findCoverFileForCollection, isImageFile } from "./cover";
 import { COVER_FOLDER, COVER_NOTE_STEM, findFolderNote, getFolderByPath, listItemBasenames, readDone } from "./library";
 import { nextNoteBasename } from "./naming";
 
-const INVALID_FOLDER_CHARS = /[\\/:*?"<>|]/;
+const PATH_SEPARATORS = /[\\/]/;
 
 export async function ensureFolder(app: App, path: string): Promise<TFolder> {
 	const folder = getFolderByPath(app, path);
@@ -34,27 +34,39 @@ export async function createNextNote(app: App, folder: TFolder): Promise<TFile> 
 }
 
 export async function createCollection(app: App, parent: TFolder, rawName: string): Promise<TFolder> {
-	const name = rawName.trim();
-	if (name === "" || name === "." || name === "..") {
+	const title = rawName.trim();
+	if (title === "" || title === "." || title === "..") {
 		throw new Error("Enter a collection name.");
 	}
-	if (INVALID_FOLDER_CHARS.test(name)) {
-		throw new Error('Collection name cannot contain \\ / : * ? " < > |');
+	if (PATH_SEPARATORS.test(title)) {
+		throw new Error("Collection name cannot contain / or \\");
 	}
 
+	// ninja: title is the label; folder name is a Windows-safe slug so "Supergirl: Woman of Tomorrow" can exist.
+	const slug = folderSlug(title);
+	const name = uniqueChildName(app, parent, slug);
 	const path = joinPath(parent, name);
-	if (app.vault.getAbstractFileByPath(path)) {
-		throw new Error(`${name} already exists.`);
-	}
-
 	await app.vault.createFolder(path);
 	const folder = getFolderByPath(app, path);
 	if (!folder) {
 		throw new Error(`Could not create folder: ${path}`);
 	}
 
-	await ensureCoverNote(app, folder);
+	const note = await ensureCoverNote(app, folder);
+	if (title !== name) {
+		await setCollectionTitle(app, note, title);
+	}
 	return folder;
+}
+
+export async function setCollectionTitle(app: App, file: TFile, raw: string): Promise<void> {
+	const title = raw.trim();
+	if (title === "") {
+		throw new Error("Enter a collection name.");
+	}
+	await app.fileManager.processFrontMatter(file, (frontmatter) => {
+		frontmatter.title = title;
+	});
 }
 
 export async function syncFolderNoteOnRename(app: App, folder: TFolder, oldPath: string): Promise<void> {
@@ -118,6 +130,30 @@ async function renameIfFree(app: App, from: string, to: string): Promise<void> {
 function joinPath(folder: TFolder, name: string): string {
 	const parentPath = folder.path === "/" ? "" : folder.path;
 	return parentPath === "" ? name : `${parentPath}/${name}`;
+}
+
+function uniqueChildName(app: App, parent: TFolder, slug: string): string {
+	let name = slug;
+	let n = 2;
+	while (app.vault.getAbstractFileByPath(joinPath(parent, name))) {
+		name = `${slug} ${n}`;
+		n += 1;
+	}
+	return name;
+}
+
+// ninja: `:` becomes " - " so comic subtitles stay readable; other illegal path chars become "-".
+function folderSlug(title: string): string {
+	const slug = title
+		.replace(/:/g, " - ")
+		.replace(/[\\/:*?"<>|]/g, "-")
+		.replace(/\s+/g, " ")
+		.replace(/-\s*-/g, "-")
+		.trim()
+		.replace(/\.+$/g, "")
+		.trim();
+	if (slug === "" || slug === "." || slug === "..") return "collection";
+	return slug;
 }
 
 function basenameOfPath(path: string): string {

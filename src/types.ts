@@ -4,6 +4,7 @@ export type LibraryNode = CollectionNode | ItemNode;
 
 export interface CollectionNode {
 	kind: "collection";
+	/** Card / breadcrumb label (`title` on Cover.md, else folder name). */
 	name: string;
 	path: string;
 }

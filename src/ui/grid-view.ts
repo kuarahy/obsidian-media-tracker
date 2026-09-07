@@ -185,7 +185,7 @@ export class MediaTrackerView extends ItemView {
 	): void {
 		const toolbar = root.createDiv({ cls: "media-tracker-toolbar" });
 		const crumbs = toolbar.createDiv({ cls: "media-tracker-breadcrumb" });
-		const segments = breadcrumbSegments(this.currentFolderPath, this.plugin.settings.libraryFolder);
+		const segments = breadcrumbSegments(this.app, this.currentFolderPath, this.plugin.settings.libraryFolder);
 
 		segments.forEach((segment, index) => {
 			if (index > 0) {
