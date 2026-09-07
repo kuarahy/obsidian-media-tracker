@@ -18,13 +18,13 @@ If this plugin helps you, you can support development here:
 - **Card grid** — folders are collections, notes are items. Nested collections are allowed.
 - **Covers** — from `cover:` on the note, an embed, an image in the folder, or `assets/covers/`. png, jpg, webp, avif, gif, bmp, svg. Vault-root image dumps move into `assets/covers/`.
 - **Read** — on series issues, toggles `done`. Green when read. Hidden on libraries (library root, Comics, Covers Collection, and other top-level folders). Per-folder `action:` can relabel the button (e.g. Watched).
-- **Add New** — on a library or parent collection, creates a child folder plus `Cover.md`. Titles may include `:` (`Supergirl: Woman of Tomorrow`); the folder name is slugged.
+- **Add New** — on a library or parent collection, creates a child folder plus `Cover.md`.
 - **Add Next** — in a series folder, creates the next numbered note, cloning however you already number (`#16` → `#17`, `5` → `6`, `.6` → `.7`, `v6` → `v7`).
 - **Change Title** — display name on `Cover.md` for a collection. Hidden on the library root. Does not rename the folder.
 - **Change Cover** — open `Cover.md` to paste/drop an image, or write a vault path / wikilink into `cover:`.
 - **Zoom** — **− / +** or Ctrl/Cmd + scroll. Integer columns that snap to the pane. Saved.
 - **Navigation** — click to drill in, breadcrumb to go up, mouse back / forward like a browser. Opening a note is not a history step.
-- **Open on startup** — the library grid can open when Obsidian starts (on by default).
+- **Homepage by default** — optional. When on, the library grid opens when Obsidian starts. Off unless you turn it on in settings.
 - **Ribbon and commands** — **Open Pegasus Media Tracker**, **Add next item**.
 
 ## Install into a vault
@@ -71,7 +71,7 @@ After it is enabled:
 - Left ribbon: the grid icon (**Open Pegasus Media Tracker**), or
 - Command palette (`Ctrl+P` / `Cmd+P`): **Open Pegasus Media Tracker**
 
-Settings for this plugin are under **Settings → Pegasus Media Tracker**. **Open on startup** is on by default.
+Settings for this plugin are under **Settings → Pegasus Media Tracker**. **Homepage by default** is off unless you turn it on.
 
 ### If the grid is empty
 
@@ -149,7 +149,7 @@ cover: "[[covers/good-girls.jpg]]"
 | Setting | Default | Meaning |
 | --- | --- | --- |
 | Library folder | `Media` | Only this folder is scanned. **Vault root** scans the whole vault. |
-| Open on startup | on | Opens the library grid when Obsidian starts. Turn off if you want to land in notes. |
+| Homepage by default | off | Opens the library grid when Obsidian starts. |
 | Action label | `Read` | Button text on item cards. A collection folder note can override this with an action property. |
 | Grid columns | `6` | How many cards per row (clamped so cards stay at least ~110px). Changed from the **− / +** buttons. |
 

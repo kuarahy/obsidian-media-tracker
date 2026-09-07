@@ -12,7 +12,7 @@ export const DEFAULT_SETTINGS: MediaTrackerSettings = {
 	libraryFolder: "Media",
 	actionLabel: "Read",
 	gridColumns: 6,
-	openOnStartup: true,
+	openOnStartup: false,
 };
 
 export interface MediaTrackerPluginApi extends Plugin {
@@ -56,8 +56,8 @@ export class MediaTrackerSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("Open on startup")
-			.setDesc("Open the Pegasus Media Tracker library grid when Obsidian starts.")
+			.setName("Homepage by default")
+			.setDesc("When on, open the library grid when Obsidian starts. Off by default.")
 			.addToggle((toggle) => {
 				toggle.setValue(this.plugin.settings.openOnStartup);
 				toggle.onChange(async (value) => {

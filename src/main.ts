@@ -22,7 +22,7 @@ export default class MediaTrackerPlugin extends Plugin {
 		});
 		this.addSettingTab(new MediaTrackerSettingTab(this.app, this));
 		registerCommands(this);
-		// ninja: default on so Obsidian lands on the library grid; setting off because stealing focus is hostile.
+		// ninja: opt-in — do not steal the active tab unless they asked.
 		this.app.workspace.onLayoutReady(() => {
 			if (!this.settings.openOnStartup) return;
 			void this.activateHomepage();
