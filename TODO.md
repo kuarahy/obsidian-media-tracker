@@ -8,6 +8,7 @@ New:
 - [ ] Start Obsidian at Media Tracker homepage
 - [ ] Homepage sections Library, Shows, Books as different rows
 - [ ] Feature: Name change to Pegasus Media Tracker
+- [ ] AVIF support
 
 Code clarity:
 - [ ] We need comments to understand which functions do what, code now is very undocumented, we may need more documentation on how to use the app as well on the repository
