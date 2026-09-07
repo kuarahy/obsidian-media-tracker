@@ -6,6 +6,13 @@ Obsidian community plugin. Folders are collections. Notes are items. One card gr
 
 It is not in the Community plugin **Browse** store. You install it from this repo.
 
+## Sponsor
+
+If this plugin helps you, you can support development here:
+
+- [Ko-fi](https://ko-fi.com/pegasusfly)
+- [GitHub Sponsors](https://github.com/sponsors/kuarahy)
+
 ## What you get
 
 - A grid of collection cards (like image search results).
