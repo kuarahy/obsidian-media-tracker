@@ -175,11 +175,16 @@ export class MediaTrackerView extends ItemView {
 
 		const actionLabel = readActionLabel(this.app, folder, this.plugin.settings.actionLabel);
 		const grid = root.createDiv({ cls: "media-tracker-grid" });
-		this.renderCards(grid, nodes, actionLabel);
+		this.renderCards(grid, nodes, actionLabel, mode === "add-next");
 		this.applyGridColumns();
 	}
 
-	private renderCards(parent: HTMLElement, nodes: LibraryNode[], actionLabel: string): void {
+	private renderCards(
+		parent: HTMLElement,
+		nodes: LibraryNode[],
+		actionLabel: string,
+		showAction: boolean,
+	): void {
 		for (const node of nodes) {
 			if (node.kind === "collection") {
 				createCollectionCard(parent, {
@@ -195,6 +200,7 @@ export class MediaTrackerView extends ItemView {
 				coverSrc: resolveItemCover(this.app, node.path),
 				done: node.done,
 				actionLabel,
+				showAction,
 				onOpen: () => void this.openItemNote(node.path),
 				onToggle: (card) => void this.onToggleDone(node, card, actionLabel),
 			});

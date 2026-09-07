@@ -7,7 +7,7 @@ TODO
 - [x] Homepage sections Library, Shows, Books as different rows --> let's revert this feature, needs grooming
 - [x] Bug: buttons in homepage for Comics, Covers Collection, Manga are displaying without spacing on left and right of the text
 ![alt text](image-2.png)
-- [ ] Bug: Read button enabled on Covers Collection (it's a library, libraries don't have Read buttons)
+- [x] Bug: Read button enabled on Covers Collection (it's a library, libraries don't have Read buttons)
 ![alt text](image-3.png)
 
 Needs Developer Validation:

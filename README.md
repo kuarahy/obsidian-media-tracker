@@ -81,7 +81,7 @@ If `Media` does not exist, the view says so. **Create folder** makes it; it does
 - Click a collection card to drill in.
 - Mouse back / forward (side buttons) goes to the previous / next collection you opened. Opening a note is not a history step. The breadcrumb still works.
 - Click an item title (or the card) to open the note.
-- Click **Read** (or your label) to set `done: true`. The button stays **Read** and turns green. Click it again to clear `done`.
+- Click **Read** (or your label) to set `done: true` on an issue in a series folder. Libraries (library root, Comics, Covers Collection, and other top-level folders) do not show Read. The button stays **Read** and turns green. Click it again to clear `done`.
 - On a parent folder (library root, Comics, anything with subcollections), **Add New** asks for a name and creates that folder plus `Cover.md` inside it. `:` and other characters that Windows forbids in paths are kept as the card title; the folder name is slugged (`Supergirl: Woman of Tomorrow` → `Supergirl - Woman of Tomorrow`).
 - **Change Title** sets `title:` on `Cover.md` for the current folder. The folder path does not change.
 - **Change Cover** on the current folder ensures `Cover.md`, then either opens it (paste or drop an image) or lets you type a vault path / wikilink to write `cover:` on that note.

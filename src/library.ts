@@ -53,11 +53,20 @@ export function addToolbarMode(
 ): "create-folder" | "add-new" | "add-next" {
 	if (!folder) return "create-folder";
 	if (isParentCollection(folder)) return "add-new";
-	const atLibraryRoot =
-		normalizeFolderPath(folder.path === "/" ? "" : folder.path) ===
-		normalizeFolderPath(libraryFolder);
-	if (atLibraryRoot && listItemBasenames(folder).length === 0) return "add-new";
+	const folderPath = normalizeFolderPath(folder.path === "/" ? "" : folder.path);
+	if (isLibraryRoot(folderPath, libraryFolder)) return "add-new";
+	// ninja: Comics, Covers Collection, etc. are libraries even when they only contain notes.
+	if (isImmediateLibraryChild(folderPath, libraryFolder)) return "add-new";
 	return "add-next";
+}
+
+function isImmediateLibraryChild(folderPath: string, libraryFolder: string): boolean {
+	const root = normalizeFolderPath(libraryFolder);
+	const path = normalizeFolderPath(folderPath);
+	if (path === "" || path === root) return false;
+	if (root === "") return !path.includes("/");
+	if (!path.startsWith(`${root}/`)) return false;
+	return !path.slice(root.length + 1).includes("/");
 }
 
 export function findFolderNote(folder: TFolder): TFile | null {

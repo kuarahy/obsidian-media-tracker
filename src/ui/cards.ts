@@ -23,6 +23,7 @@ export function createItemCard(
 		actionLabel: string;
 		onOpen: () => void;
 		onToggle: (card: HTMLElement) => void;
+		showAction?: boolean;
 	},
 ): HTMLElement {
 	const card = parent.createDiv({ cls: "media-tracker-card media-tracker-card-item" });
@@ -35,6 +36,8 @@ export function createItemCard(
 		event.stopPropagation();
 		opts.onOpen();
 	});
+
+	if (opts.showAction === false) return card;
 
 	const button = card.createEl("button", { cls: "media-tracker-card-action" });
 	button.addEventListener("click", (event) => {
