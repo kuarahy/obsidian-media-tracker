@@ -2,7 +2,7 @@ import { App, Modal, Setting } from "obsidian";
 
 export function promptForName(
 	app: App,
-	opts: { title: string; placeholder: string; confirm: string },
+	opts: { title: string; placeholder: string; confirm: string; value?: string },
 ): Promise<string | null> {
 	return new Promise((resolve) => {
 		new NameModal(app, opts, resolve).open();
@@ -23,10 +23,11 @@ class NameModal extends Modal {
 
 	constructor(
 		app: App,
-		private opts: { title: string; placeholder: string; confirm: string },
+		private opts: { title: string; placeholder: string; confirm: string; value?: string },
 		private finish: (value: string | null) => void,
 	) {
 		super(app);
+		this.name = opts.value?.trim() ?? "";
 	}
 
 	onOpen(): void {
@@ -34,6 +35,7 @@ class NameModal extends Modal {
 
 		new Setting(this.contentEl).addText((text) => {
 			text.setPlaceholder(this.opts.placeholder);
+			if (this.name !== "") text.setValue(this.name);
 			text.onChange((value) => {
 				this.name = value;
 			});
@@ -42,7 +44,10 @@ class NameModal extends Modal {
 				event.preventDefault();
 				this.submit();
 			});
-			window.setTimeout(() => text.inputEl.focus(), 0);
+			window.setTimeout(() => {
+				text.inputEl.focus();
+				text.inputEl.select();
+			}, 0);
 		});
 
 		new Setting(this.contentEl)

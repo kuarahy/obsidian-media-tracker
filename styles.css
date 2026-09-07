@@ -32,6 +32,7 @@
 .media-tracker-breadcrumb-link,
 .media-tracker-add,
 .media-tracker-cover,
+.media-tracker-title,
 .media-tracker-zoom {
 	padding: var(--size-2-2) var(--size-4-2);
 }

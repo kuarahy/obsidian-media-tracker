@@ -1,5 +1,5 @@
 import { ItemView, Notice, TAbstractFile, TFile, WorkspaceLeaf } from "obsidian";
-import { createCollection, createNextNote, ensureCoverNote, ensureFolder, setCoverOnNote, toggleItemDone } from "../actions";
+import { createCollection, createNextNote, ensureCoverNote, ensureFolder, setCollectionTitle, setCoverOnNote, toggleItemDone } from "../actions";
 import { resolveCollectionCover, resolveItemCover } from "../cover";
 import {
 	addToolbarMode,
@@ -8,6 +8,7 @@ import {
 	isPathInLibrary,
 	listChildren,
 	readActionLabel,
+	readCollectionTitle,
 } from "../library";
 import type { MediaTrackerPluginApi } from "../settings";
 import type { ItemNode } from "../types";
@@ -161,6 +162,25 @@ export class MediaTrackerView extends ItemView {
 		applyItemDoneState(card, next, actionLabel);
 	}
 
+	private async onChangeTitle(): Promise<void> {
+		const folder = getFolderByPath(this.app, this.currentFolderPath);
+		if (!folder) return;
+		try {
+			const note = await ensureCoverNote(this.app, folder);
+			const name = await promptForName(this.app, {
+				title: "Change title",
+				placeholder: "Collection title",
+				confirm: "Save",
+				value: readCollectionTitle(this.app, folder),
+			});
+			if (name === null) return;
+			await setCollectionTitle(this.app, note, name);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : "Could not change the title.";
+			new Notice(message);
+		}
+	}
+
 	private async onChangeCover(): Promise<void> {
 		const folder = getFolderByPath(this.app, this.currentFolderPath);
 		if (!folder) return;
@@ -217,6 +237,11 @@ export class MediaTrackerView extends ItemView {
 		zoomIn.addEventListener("click", () => void this.zoom(-1));
 
 		if (folderExists) {
+			const title = toolbar.createEl("button", {
+				cls: "media-tracker-title",
+				text: "Change Title",
+			});
+			title.addEventListener("click", () => void this.onChangeTitle());
 			const cover = toolbar.createEl("button", {
 				cls: "media-tracker-cover",
 				text: "Change Cover",
