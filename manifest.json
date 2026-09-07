@@ -1,6 +1,6 @@
 {
-	"id": "media-tracker",
-	"name": "Media Tracker",
+	"id": "pegasus-media-tracker",
+	"name": "Pegasus Media Tracker",
 	"version": "0.1.0",
 	"minAppVersion": "1.0.0",
 	"description": "Browse vault folders as a card grid, mark items done, and add the next numbered note.",

@@ -1,4 +1,4 @@
-export const VIEW_TYPE_MEDIA_TRACKER = "media-tracker";
+export const VIEW_TYPE_MEDIA_TRACKER = "pegasus-media-tracker";
 
 export type LibraryNode = CollectionNode | ItemNode;
 

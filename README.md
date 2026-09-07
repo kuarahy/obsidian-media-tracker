@@ -1,4 +1,4 @@
-# Media Tracker
+# Pegasus Media Tracker
 
 ![Library grid of comic covers](docs/library.jpg)
 
@@ -25,7 +25,9 @@ If this plugin helps you, you can support development here:
 
 ## Install into a vault
 
-Obsidian only loads three files. The folder name must match the plugin id: `media-tracker`.
+Obsidian only loads three files. The folder name must match the plugin id: `pegasus-media-tracker`.
+
+If you already installed this as `media-tracker`, rename that folder to `pegasus-media-tracker` and re-enable the plugin. Obsidian treats it as a new plugin.
 
 1. Build (from this repo):
 
@@ -39,9 +41,9 @@ Obsidian only loads three files. The folder name must match the plugin id: `medi
 2. Copy these files into the vault:
 
    ```
-   <vault>/.obsidian/plugins/media-tracker/main.js
-   <vault>/.obsidian/plugins/media-tracker/manifest.json
-   <vault>/.obsidian/plugins/media-tracker/styles.css
+   <vault>/.obsidian/plugins/pegasus-media-tracker/main.js
+   <vault>/.obsidian/plugins/pegasus-media-tracker/manifest.json
+   <vault>/.obsidian/plugins/pegasus-media-tracker/styles.css
    ```
 
    Do not copy `src/`, `node_modules/`, or the git repo into that folder. Obsidian will ignore them.
@@ -50,22 +52,22 @@ Obsidian only loads three files. The folder name must match the plugin id: `medi
 
    - Reload the app (`Ctrl+R` / `Cmd+R`), or close and reopen the vault.
    - **Settings → Community plugins**: turn **Restricted mode** off.
-   - Enable **Media Tracker** in the installed-plugin list. Do not look under **Browse**.
+   - Enable **Pegasus Media Tracker** in the installed-plugin list. Do not look under **Browse**.
 
 If the plugin is missing after a reload, the folder is named wrong, `manifest.json` is not next to `main.js`, or Restricted mode is still on.
 
 ### Develop against a vault
 
-Either copy `main.js` after each build, or clone/symlink this repo to `<vault>/.obsidian/plugins/media-tracker/` and run `npm run dev` there so Obsidian picks up rebuilds. Reload the plugin (or the app) after the first build.
+Either copy `main.js` after each build, or clone/symlink this repo to `<vault>/.obsidian/plugins/pegasus-media-tracker/` and run `npm run dev` there so Obsidian picks up rebuilds. Reload the plugin (or the app) after the first build.
 
 ## Open the grid
 
 After it is enabled:
 
-- Left ribbon: the grid icon (**Open media tracker**), or
-- Command palette (`Ctrl+P` / `Cmd+P`): **Open media tracker**
+- Left ribbon: the grid icon (**Open Pegasus Media Tracker**), or
+- Command palette (`Ctrl+P` / `Cmd+P`): **Open Pegasus Media Tracker**
 
-Settings for this plugin are under **Settings → Media Tracker**.
+Settings for this plugin are under **Settings → Pegasus Media Tracker**.
 
 ### If the grid is empty
 
@@ -86,7 +88,7 @@ If `Media` does not exist, the view says so. **Create folder** makes it; it does
 
 The grid opens as a tab in the main workspace. Command palette **Add next item** follows the same Add New / Add Next rule as the toolbar, for the open grid folder, or for the folder of the active note if the grid is closed.
 
-A **Not synchronized** / invalid-path banner under files comes from **Self-hosted LiveSync** (or Obsidian Sync), not this plugin. Configure ignore rules and allowed paths there. Media Tracker does not move LiveSync’s status UI.
+A **Not synchronized** / invalid-path banner under files comes from **Self-hosted LiveSync** (or Obsidian Sync), not this plugin. Configure ignore rules and allowed paths there. Pegasus Media Tracker does not move LiveSync’s status UI.
 
 ## Vault layout
 
@@ -148,7 +150,7 @@ cover: "[[covers/good-girls.jpg]]"
 
 | Command | What it does |
 | --- | --- |
-| Open media tracker | Opens or focuses the grid view in the main workspace |
+| Open Pegasus Media Tracker | Opens or focuses the grid view in the main workspace |
 | Add next item | **Add New** or **Add Next**, matching the open folder |
 
 ## Repository
@@ -163,7 +165,7 @@ cover: "[[covers/good-girls.jpg]]"
 | `src/settings.ts` | Settings tab |
 | `src/commands.ts` | Command palette |
 | `src/ui/` | Grid view and cards |
-| `manifest.json` | Plugin id `media-tracker` |
+| `manifest.json` | Plugin id `pegasus-media-tracker` |
 | `styles.css` | Grid layout |
 | `PLAN.md` | Engineering plan |
 

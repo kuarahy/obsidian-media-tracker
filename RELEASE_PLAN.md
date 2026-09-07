@@ -1,9 +1,9 @@
 # Release Plan
 
-How Media Tracker gets from “works in my vault” to installable from Obsidian’s Community plugins **Browse** list, and how later versions ship after that.
+How Pegasus Media Tracker gets from “works in my vault” to installable from Obsidian’s Community plugins **Browse** list, and how later versions ship after that.
 
-Repo: [kuarahy/obsidian-media-tracker](https://github.com/kuarahy/obsidian-media-tracker)  
-Plugin id: `media-tracker` (must stay unique; must not contain `obsidian`)
+Repo: [kuarahy/pegasus-media-tracker](https://github.com/kuarahy/pegasus-media-tracker)  
+Plugin id: `pegasus-media-tracker` (must stay unique; must not contain `obsidian`)
 
 Official docs (source of truth if anything here drifts):
 
@@ -17,7 +17,7 @@ Official docs (source of truth if anything here drifts):
 
 | Stage | Who can install | How |
 | --- | --- | --- |
-| **Dev / private** | You | Copy `main.js`, `manifest.json`, `styles.css` into `.obsidian/plugins/media-tracker/` (see README) |
+| **Dev / private** | You | Copy `main.js`, `manifest.json`, `styles.css` into `.obsidian/plugins/pegasus-media-tracker/` (see README) |
 | **GitHub release** | Anyone with the repo URL | Download the three assets from a tagged GitHub Release |
 | **Community directory** | Anyone in Obsidian | **Settings → Community plugins → Browse** after the first successful directory submission |
 
@@ -108,7 +108,7 @@ One-time submission. Later versions do **not** need a new PR to `obsidian-releas
 
 1. Sign in at [community.obsidian.md](https://community.obsidian.md) with your Obsidian account.
 2. Connect / link the **GitHub** account that owns this repo.
-3. Add the plugin from the developer dashboard (select `kuarahy/obsidian-media-tracker`).
+3. Add the plugin from the developer dashboard (select `kuarahy/pegasus-media-tracker`).
 4. Complete the listing steps (description, categories, free vs paid, screenshots if you have them).
 5. Submit. Automated review runs on `manifest.json`, release assets, and source (including that the build matches what’s committed).
 

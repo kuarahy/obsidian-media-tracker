@@ -17,7 +17,7 @@ export default class MediaTrackerPlugin extends Plugin {
 		);
 
 		this.registerView(VIEW_TYPE_MEDIA_TRACKER, (leaf) => new MediaTrackerView(leaf, this));
-		this.addRibbonIcon("layout-grid", "Open media tracker", () => {
+		this.addRibbonIcon("layout-grid", "Open Pegasus Media Tracker", () => {
 			void this.activateView();
 		});
 		this.addSettingTab(new MediaTrackerSettingTab(this.app, this));

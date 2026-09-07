@@ -7,7 +7,7 @@ New:
 - [ ] Change Title button alongside Change Cover and Add Next
 - [ ] Start Obsidian at Media Tracker homepage
 - [ ] Homepage sections Library, Shows, Books as different rows
-- [ ] Feature: Name change to Pegasus Media Tracker
+- [x] Feature: Name change to Pegasus Media Tracker
 - [ ] AVIF support
 
 Code clarity:

@@ -1,5 +1,5 @@
 {
-	"name": "media-tracker",
+	"name": "pegasus-media-tracker",
 	"version": "0.1.0",
 	"description": "Grid view for comics, shows, and other media collections in an Obsidian vault.",
 	"main": "main.js",

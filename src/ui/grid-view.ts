@@ -34,7 +34,7 @@ export class MediaTrackerView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return "Media Tracker";
+		return "Pegasus Media Tracker";
 	}
 
 	getIcon(): string {
