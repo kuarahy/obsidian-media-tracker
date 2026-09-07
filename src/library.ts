@@ -20,6 +20,10 @@ export function isPathInLibrary(path: string, libraryFolder: string): boolean {
 	return target === root || target.startsWith(`${root}/`);
 }
 
+export function isLibraryRoot(folderPath: string, libraryFolder: string): boolean {
+	return normalizeFolderPath(folderPath) === normalizeFolderPath(libraryFolder);
+}
+
 export const COVER_FOLDER = "assets/covers";
 export const COVER_NOTE_STEM = "Cover";
 
