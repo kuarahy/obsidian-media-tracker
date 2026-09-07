@@ -1,6 +1,6 @@
 # Pegasus Media Tracker
 
-![Library grid of comic covers](docs/library.jpg)
+![Library grid of comic covers](assets/library.jpg)
 
 Agnostic media tracker. Each folder is collections. Notes are items. One card grid for comics, manga, shows, or anything else with the same shape.
 
