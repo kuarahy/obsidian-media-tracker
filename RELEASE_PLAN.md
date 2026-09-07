@@ -37,7 +37,7 @@ Finish product work first. Do not submit while `TODO.md` still has ship-blockers
 
 ### Repo hygiene
 
-- [ ] Add a root **LICENSE** file that matches `package.json` (`0-BSD`). The directory expects a recognizable license on the repo; `package.json` alone is easy to miss.
+- [x] Add a root **LICENSE.md** that matches `package.json`. Attribution to Lucas Perez (`@kuarahy`) and this repo is required.
 - [ ] Keep `README.md` accurate for end users (install, settings, vault layout). Point people at Community Browse once live; keep the manual install section for pre-directory or fork users.
 - [ ] Remove or ignore scratch assets that should not ship with the repo long-term (loose `image*.png` used for TODOs, etc.).
 - [ ] `manifest.json`: `id`, `name`, `description`, `author`, `authorUrl`, `minAppVersion`, `version` are final and honest.
@@ -149,7 +149,7 @@ If a release fails review, the directory may drop the plugin from search until a
 | --- | --- |
 | First directory tag | `0.1.0` (current) or bump to `1.0.0` if you want “stable” semantics |
 | Release assets | `main.js`, `manifest.json`, `styles.css` |
-| License file | Add `LICENSE` (0-BSD) before submit |
+| License file | `LICENSE.md` (attribution to Lucas Perez / `@kuarahy` required) |
 | Submit when | TODO ship-blockers done + one clean vault QA pass + GitHub Release published |
 
 ---
@@ -160,7 +160,7 @@ If a release fails review, the directory may drop the plugin from search until a
 
 - [ ] Ship-blockers in `TODO.md` done or explicitly deferred
 - [ ] QA vault pass
-- [ ] `LICENSE` present and matches package license
+- [ ] `LICENSE.md` present and matches package license
 - [ ] README matches the build you’re shipping
 - [ ] `npm run build` succeeds
 

@@ -172,4 +172,4 @@ Requires Node 18+. No extra runtime dependencies; Obsidian APIs only.
 
 ## License
 
-0-BSD. See `package.json`.
+See `LICENSE.md`. Use, copy, modify, and distribute freely, provided you always credit **Lucas Perez** (`@kuarahy`) and this repo: [kuarahy/obsidian-media-tracker](https://github.com/kuarahy/obsidian-media-tracker).
