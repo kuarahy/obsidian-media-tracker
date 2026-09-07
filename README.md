@@ -2,7 +2,7 @@
 
 ![Library grid of comic covers](docs/library.jpg)
 
-Obsidian community plugin. Folders are collections. Notes are items. One card grid for comics, manga, shows, or anything else with the same shape.
+Agnostic media tracker. Each folder is collections. Notes are items. One card grid for comics, manga, shows, or anything else with the same shape.
 
 It is not in the Community plugin **Browse** store. You install it from this repo.
 
@@ -192,4 +192,4 @@ Repository: https://github.com/kuarahy/pegasus-media-tracker
 Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that copies and derivative works always include the following attribution, in documentation and other user-facing notices:
 
     Pegasus Media Tracker by Lucas Perez (@kuarahy)
-    https://github.com/kuarahy/obsidian-media-tracker
+    https://github.com/kuarahy/pegasus-media-tracker
