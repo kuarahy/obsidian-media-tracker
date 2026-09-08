@@ -1,5 +1,5 @@
 import { App, TFile, TFolder } from "obsidian";
-import { findFolderNote, getFolderByPath, isFolderNote, isHiddenCollectionFolder, COVER_FOLDER } from "./library";
+import { findFolderNote, getFolderByPath, isFolderNote, isHiddenCollectionFolder, readFrontmatterField, COVER_FOLDER } from "./library";
 
 // ninja: avif is in the whitelist because Chromium paints it in <img>; no decoder package.
 const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp", "bmp", "svg", "avif"]);
@@ -61,7 +61,7 @@ function resolveCollectionCoverWalk(app: App, folderPath: string, seen: Set<stri
 }
 
 function coverFromFrontmatter(app: App, file: TFile): string | null {
-	const cover = app.metadataCache.getFileCache(file)?.frontmatter?.cover;
+	const cover = readFrontmatterField(app, file, "cover");
 	if (typeof cover !== "string" || cover.trim() === "") return null;
 	return resolveCoverValue(app, file, cover.trim());
 }

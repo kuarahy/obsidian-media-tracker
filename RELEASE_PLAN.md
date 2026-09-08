@@ -75,6 +75,8 @@ That runs `version-bump.mjs`, which updates `manifest.json` and `versions.json`,
 git push origin main --follow-tags
 ```
 
+Pushing the version tag starts the Release workflow (build, attest, GitHub Release).
+
 (or push the branch and tag separately if you prefer).
 
 ---
@@ -83,20 +85,15 @@ git push origin main --follow-tags
 
 Do this for the **first** public version and for **every** update afterward.
 
+`.github/workflows/release.yml` is the publisher. It builds on Ubuntu, attests `main.js` and `styles.css`, then uploads those plus `manifest.json`. Do not `gh release create` from a laptop — those bytes would not match the attestation.
+
 1. Ensure the version bump is on the default branch.
-2. `npm run build` so you have a fresh production `main.js`.
-3. Create a GitHub Release whose **tag** equals `manifest.json` `version` (example: `0.1.0`).
-4. Attach as **release assets** (binary uploads, not only “source code” zip):
+2. Push a git tag that equals `manifest.json` `version` (example: `1.0.1`, not `v1.0.1`).
+3. The Release workflow attaches:
    - `main.js`
    - `manifest.json`
    - `styles.css`
-5. Write release notes users can skim (what changed, any vault/migration notes).
-
-CLI sketch (after build + tag exist):
-
-```bash
-gh release create 0.1.0 main.js manifest.json styles.css --title "0.1.0" --notes "First public release."
-```
+4. If the tag already exists (pushed before this workflow landed), run **Actions → Release → Run workflow** and pass that tag.
 
 Until the plugin is in the community directory, README can keep saying “install from this repo / release assets.” After directory approval, Browse is the default path; GitHub releases remain the distribution mechanism Obsidian pulls from.
 
@@ -133,11 +130,9 @@ Warnings usually do not block; errors do. The plugin is not installable from Bro
 ## Ongoing releases (post-directory)
 
 1. Land changes on default branch.
-2. `npm version <patch|minor|major>` → commit → push (with tag).
-3. `npm run build`.
-4. `gh release create <version> main.js manifest.json styles.css …`
-5. Watch the developer dashboard for the automated scan on the new release.
-6. No resubmit form; no `community-plugins.json` PR for version bumps.
+2. `npm version <patch|minor|major>` → commit → push (with tag). The Release workflow builds, attests, and publishes.
+3. Watch the developer dashboard for the automated scan on the new release.
+4. No resubmit form; no `community-plugins.json` PR for version bumps.
 
 If a release fails review, the directory may drop the plugin from search until a fixed release passes — treat review errors as ship blockers.
 
@@ -168,8 +163,8 @@ If a release fails review, the directory may drop the plugin from search until a
 
 - [ ] Version bumped in `package.json` / `manifest.json` / `versions.json`
 - [ ] Version commit (+ tag) on default branch, pushed
+- [ ] Release workflow green (attests `main.js` / `styles.css`, uploads the three assets)
 - [ ] GitHub Release tag == manifest version
-- [ ] Assets attached: `main.js`, `manifest.json`, `styles.css`
 
 **Directory (first time only)**
 

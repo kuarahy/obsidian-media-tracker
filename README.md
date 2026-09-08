@@ -25,7 +25,7 @@ If this plugin helps you, you can support development here:
 - **Zoom** — **− / +** or Ctrl/Cmd + scroll. Integer columns that snap to the pane. Saved.
 - **Navigation** — click to drill in, breadcrumb to go up, mouse back / forward like a browser. Opening a note is not a history step.
 - **Homepage by default** — optional. When on, the library grid opens when Obsidian starts. Off unless you turn it on in settings.
-- **Ribbon and commands** — **Open Pegasus Media Tracker**, **Add next item**.
+- **Ribbon and commands** — ribbon **Open Pegasus Media Tracker**, command palette **Open library** and **Add next item**.
 
 ## Install into a vault
 
@@ -69,7 +69,7 @@ Either copy `main.js` after each build, or clone/symlink this repo to `<vault>/.
 After it is enabled:
 
 - Left ribbon: the grid icon (**Open Pegasus Media Tracker**), or
-- Command palette (`Ctrl+P` / `Cmd+P`): **Open Pegasus Media Tracker**
+- Command palette (`Ctrl+P` / `Cmd+P`): **Open library**
 
 Settings for this plugin are under **Settings → Pegasus Media Tracker**. **Homepage by default** is off unless you turn it on.
 
@@ -157,7 +157,7 @@ cover: "[[covers/good-girls.jpg]]"
 
 | Command | What it does |
 | --- | --- |
-| Open Pegasus Media Tracker | Opens or focuses the grid view in the main workspace |
+| Open library | Opens or focuses the grid view in the main workspace |
 | Add next item | **Add New** or **Add Next**, matching the open folder |
 
 ## Repository
@@ -188,11 +188,9 @@ Requires Node 18+. No extra runtime dependencies; Obsidian APIs only.
 
 ## License
 
-See `LICENSE.md`. Copyright (c) 2026 Lucas Perez (GitHub: kuarahy).
+MIT. See `LICENSE.md`. Copyright (c) 2026 Lucas Perez (GitHub: kuarahy).
 
-Repository: https://github.com/kuarahy/pegasus-media-tracker
-
-Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that copies and derivative works always include the following attribution, in documentation and other user-facing notices:
+Please keep this attribution in documentation and other user-facing notices:
 
     Pegasus Media Tracker by Lucas Perez (@kuarahy)
     https://github.com/kuarahy/pegasus-media-tracker

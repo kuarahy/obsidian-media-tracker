@@ -7,9 +7,10 @@ import { MediaTrackerView } from "./ui/grid-view";
 import { promptForName } from "./ui/name-modal";
 
 export function registerCommands(plugin: MediaTrackerPluginApi): void {
+	// ninja: palette already shows the plugin name; repeating it in id/name is what the review flags.
 	plugin.addCommand({
-		id: "open-pegasus-media-tracker",
-		name: "Open Pegasus Media Tracker",
+		id: "open-library",
+		name: "Open library",
 		callback: () => void plugin.activateView(),
 	});
 
