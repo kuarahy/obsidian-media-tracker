@@ -4,7 +4,7 @@
 
 Agnostic media tracker. Each folder is collections. Notes are items. One card grid for comics, manga, shows, or anything else with the same shape.
 
-It is not in the Community plugin **Browse** store. You install it from this repo.
+Install from **Settings → Community plugins → Browse**, or from the [Community directory listing](https://community.obsidian.md/plugins/pegasus-media-tracker).
 
 ## Sponsor
 
@@ -27,11 +27,18 @@ If this plugin helps you, you can support development here:
 - **Homepage by default** — optional. When on, the library grid opens when Obsidian starts. Off unless you turn it on in settings.
 - **Ribbon and commands** — ribbon **Open Pegasus Media Tracker**, command palette **Open library** and **Add next item**.
 
-## Install into a vault
+## Install
+
+In Obsidian:
+
+1. **Settings → Community plugins**: turn **Restricted mode** off.
+2. **Browse**, search **Pegasus Media Tracker**, install, and enable it.
+
+If you already installed this as `media-tracker` from this repo, remove that folder (or rename it to `pegasus-media-tracker`) and install from Browse. Obsidian treats the old folder as a different plugin.
+
+### Manual / from source
 
 Obsidian only loads three files. The folder name must match the plugin id: `pegasus-media-tracker`.
-
-If you already installed this as `media-tracker`, rename that folder to `pegasus-media-tracker` and re-enable the plugin. Obsidian treats it as a new plugin.
 
 1. Build (from this repo):
 
@@ -52,11 +59,7 @@ If you already installed this as `media-tracker`, rename that folder to `pegasus
 
    Do not copy `src/`, `node_modules/`, or the git repo into that folder. Obsidian will ignore them.
 
-3. In Obsidian:
-
-   - Reload the app (`Ctrl+R` / `Cmd+R`), or close and reopen the vault.
-   - **Settings → Community plugins**: turn **Restricted mode** off.
-   - Enable **Pegasus Media Tracker** in the installed-plugin list. Do not look under **Browse**.
+3. Reload the app (`Ctrl+R` / `Cmd+R`), then enable **Pegasus Media Tracker** in the installed-plugin list.
 
 If the plugin is missing after a reload, the folder is named wrong, `manifest.json` is not next to `main.js`, or Restricted mode is still on.
 
