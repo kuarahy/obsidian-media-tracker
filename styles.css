@@ -29,6 +29,11 @@
 	font-weight: var(--font-semibold);
 }
 
+.media-tracker-zoom-group {
+	display: flex;
+	gap: var(--size-4-1);
+}
+
 .media-tracker-breadcrumb-link,
 .media-tracker-add,
 .media-tracker-cover,
@@ -116,5 +121,17 @@
 @media (max-width: 420px) {
 	.media-tracker-toolbar {
 		flex-wrap: wrap;
+	}
+
+	.media-tracker-breadcrumb {
+		flex-basis: 100%;
+	}
+
+	.media-tracker-breadcrumb-link,
+	.media-tracker-add,
+	.media-tracker-cover,
+	.media-tracker-title,
+	.media-tracker-zoom {
+		padding: var(--size-2-1) var(--size-4-1);
 	}
 }
