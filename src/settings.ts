@@ -1,5 +1,4 @@
-import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
-import { listVaultFolderPaths } from "./library";
+import { App, Plugin, PluginSettingTab, type SettingDefinitionItem } from "obsidian";
 
 export interface MediaTrackerSettings {
 	libraryFolder: string;
@@ -31,53 +30,69 @@ export class MediaTrackerSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	display(): void {
-		const { containerEl } = this;
-		containerEl.empty();
-
-		new Setting(containerEl)
-			.setName("Library folder")
-			.setDesc("Root folder scanned for collections. Other vault folders are ignored.")
-			.addDropdown((dropdown) => {
-				dropdown.addOption("", "Vault root");
-				const folders = listVaultFolderPaths(this.app);
-				for (const folder of folders) {
-					dropdown.addOption(folder, folder);
-				}
-				const current = this.plugin.settings.libraryFolder;
-				if (current !== "" && !folders.includes(current)) {
-					dropdown.addOption(current, `${current} (missing)`);
-				}
-				dropdown.setValue(current);
-				dropdown.onChange(async (value) => {
-					this.plugin.settings.libraryFolder = value;
-					await this.plugin.saveSettings();
-				});
-			});
-
-		new Setting(containerEl)
-			.setName("Homepage by default")
-			.setDesc("When on, open the library grid when Obsidian starts. Off by default.")
-			.addToggle((toggle) => {
-				toggle.setValue(this.plugin.settings.openOnStartup);
-				toggle.onChange(async (value) => {
-					this.plugin.settings.openOnStartup = value;
-					await this.plugin.saveSettings();
-				});
-			});
-
-		new Setting(containerEl)
-			.setName("Action label")
-			.setDesc("Button text on item cards. A collection folder note can override this with an action property.")
-			.addText((text) => {
-				text.setPlaceholder(DEFAULT_SETTINGS.actionLabel);
-				text.setValue(this.plugin.settings.actionLabel);
-				text.onChange(async (value) => {
-					const trimmed = value.trim();
-					this.plugin.settings.actionLabel =
-						trimmed === "" ? DEFAULT_SETTINGS.actionLabel : trimmed;
-					await this.plugin.saveSettings();
-				});
-			});
+	getSettingDefinitions(): SettingDefinitionItem[] {
+		return [
+			{
+				name: "Library folder",
+				desc: "Root folder scanned for collections. Other vault folders are ignored.",
+				control: {
+					type: "folder" as const,
+					key: "libraryFolder",
+					placeholder: "Vault root",
+					includeRoot: true,
+				},
+			},
+			{
+				name: "Homepage by default",
+				desc: "When on, open the library grid when Obsidian starts. Off by default.",
+				control: { type: "toggle" as const, key: "openOnStartup" },
+			},
+			{
+				name: "Action label",
+				desc: "Button text on item cards. A collection folder note can override this with an action property.",
+				control: {
+					type: "text" as const,
+					key: "actionLabel",
+					placeholder: DEFAULT_SETTINGS.actionLabel,
+				},
+			},
+		];
 	}
+
+	getControlValue(key: string): unknown {
+		if (key === "libraryFolder") {
+			const path = this.plugin.settings.libraryFolder;
+			return path === "" ? "/" : path;
+		}
+		return this.plugin.settings[key as keyof MediaTrackerSettings];
+	}
+
+	async setControlValue(key: string, value: unknown): Promise<void> {
+		switch (key) {
+			case "libraryFolder":
+				this.plugin.settings.libraryFolder = normalizeLibraryFolder(value);
+				break;
+			case "openOnStartup":
+				this.plugin.settings.openOnStartup = value === true;
+				break;
+			case "actionLabel":
+				this.plugin.settings.actionLabel = normalizeActionLabel(value);
+				break;
+			default:
+				return;
+		}
+		await this.plugin.saveSettings();
+	}
+}
+
+function normalizeLibraryFolder(value: unknown): string {
+	if (typeof value !== "string") return "";
+	if (value === "/" || value === "") return "";
+	return value.replace(/^\/+|\/+$/g, "");
+}
+
+function normalizeActionLabel(value: unknown): string {
+	if (typeof value !== "string") return DEFAULT_SETTINGS.actionLabel;
+	const trimmed = value.trim();
+	return trimmed === "" ? DEFAULT_SETTINGS.actionLabel : trimmed;
 }

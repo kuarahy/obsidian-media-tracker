@@ -62,7 +62,7 @@ export async function setCollectionTitle(app: App, file: TFile, raw: string): Pr
 		throw new Error("Enter a collection name.");
 	}
 	// ninja: title is a label on Cover.md; we do not rename the folder (wikilinks, history, LiveSync).
-	await app.fileManager.processFrontMatter(file, (frontmatter) => {
+	await mutateFrontmatter(app, file, (frontmatter) => {
 		frontmatter.title = title;
 	});
 }
@@ -100,7 +100,7 @@ export async function ensureCoverNote(app: App, folder: TFolder, title?: string)
 
 export async function setCoverOnNote(app: App, file: TFile, raw: string): Promise<void> {
 	const value = normalizeCoverValue(raw);
-	await app.fileManager.processFrontMatter(file, (frontmatter) => {
+	await mutateFrontmatter(app, file, (frontmatter) => {
 		frontmatter.cover = value;
 	});
 	const text = await app.vault.read(file);
@@ -119,10 +119,20 @@ export async function toggleItemDone(app: App, path: string): Promise<boolean | 
 	const file = app.vault.getAbstractFileByPath(path);
 	if (!(file instanceof TFile)) return null;
 	const next = !readDone(app, file);
-	await app.fileManager.processFrontMatter(file, (frontmatter) => {
+	await mutateFrontmatter(app, file, (frontmatter) => {
 		frontmatter.done = next;
 	});
 	return next;
+}
+
+function mutateFrontmatter(
+	app: App,
+	file: TFile,
+	patch: (frontmatter: Record<string, unknown>) => void,
+): Promise<void> {
+	return app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
+		patch(frontmatter);
+	});
 }
 
 async function renameIfFree(app: App, from: string, to: string): Promise<void> {

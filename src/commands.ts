@@ -8,8 +8,8 @@ import { promptForName } from "./ui/name-modal";
 
 export function registerCommands(plugin: MediaTrackerPluginApi): void {
 	plugin.addCommand({
-		id: "open-pegasus-media-tracker",
-		name: "Open Pegasus Media Tracker",
+		id: "open-library",
+		name: "Open library",
 		callback: () => void plugin.activateView(),
 	});
 

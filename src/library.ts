@@ -89,14 +89,14 @@ export function findFolderNote(folder: TFolder): TFile | null {
 }
 
 export function readDone(app: App, file: TFile): boolean {
-	const done = app.metadataCache.getFileCache(file)?.frontmatter?.done;
+	const done = readFrontmatterField(app, file, "done");
 	return done === true || done === "true";
 }
 
 export function readActionLabel(app: App, folder: TFolder, fallback: string): string {
 	const note = findFolderNote(folder);
 	if (!note) return fallback;
-	const action = app.metadataCache.getFileCache(note)?.frontmatter?.action;
+	const action = readFrontmatterField(app, note, "action");
 	if (typeof action !== "string") return fallback;
 	const trimmed = action.trim();
 	return trimmed === "" ? fallback : trimmed;
@@ -106,10 +106,16 @@ export function readActionLabel(app: App, folder: TFolder, fallback: string): st
 export function readCollectionTitle(app: App, folder: TFolder): string {
 	const note = findFolderNote(folder);
 	if (!note) return folder.name;
-	const title = app.metadataCache.getFileCache(note)?.frontmatter?.title;
+	const title = readFrontmatterField(app, note, "title");
 	if (typeof title !== "string") return folder.name;
 	const trimmed = title.trim();
 	return trimmed === "" ? folder.name : trimmed;
+}
+
+export function readFrontmatterField(app: App, file: TFile, key: string): unknown {
+	const frontmatter = app.metadataCache.getFileCache(file)?.frontmatter;
+	if (frontmatter === undefined) return undefined;
+	return (frontmatter as Record<string, unknown>)[key];
 }
 
 export function listItemBasenames(folder: TFolder): string[] {
@@ -148,13 +154,6 @@ export function listChildren(app: App, folder: TFolder): LibraryNode[] {
 	return nodes;
 }
 
-export function listVaultFolderPaths(app: App): string[] {
-	const out: string[] = [];
-	walkFolders(app.vault.getRoot(), out);
-	out.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
-	return out;
-}
-
 export function breadcrumbSegments(app: App, folderPath: string, libraryFolder: string): BreadcrumbSegment[] {
 	const root = normalizeFolderPath(libraryFolder);
 	const current = normalizeFolderPath(folderPath);
@@ -173,15 +172,6 @@ export function breadcrumbSegments(app: App, folderPath: string, libraryFolder: 
 		segments.push({ name: folder ? readCollectionTitle(app, folder) : part, path: acc });
 	}
 	return segments;
-}
-
-function walkFolders(folder: TFolder, out: string[]): void {
-	for (const child of folder.children) {
-		if (child instanceof TFolder) {
-			out.push(child.path);
-			walkFolders(child, out);
-		}
-	}
 }
 
 function markdownStem(file: TFile): string {
