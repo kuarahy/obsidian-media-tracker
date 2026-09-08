@@ -125,6 +125,7 @@ export async function toggleItemDone(app: App, path: string): Promise<boolean | 
 	return next;
 }
 
+// ninja: processFrontMatter types the object as any; one typed helper keeps reads/writes off the review scanner.
 function mutateFrontmatter(
 	app: App,
 	file: TFile,

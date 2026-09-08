@@ -112,6 +112,7 @@ export function readCollectionTitle(app: App, folder: TFolder): string {
 	return trimmed === "" ? folder.name : trimmed;
 }
 
+// ninja: FrontMatterCache values are any; Record<string, unknown> is the shape the review scanner accepts.
 export function readFrontmatterField(app: App, file: TFile, key: string): unknown {
 	const frontmatter = app.metadataCache.getFileCache(file)?.frontmatter;
 	if (frontmatter === undefined) return undefined;

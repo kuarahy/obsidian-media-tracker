@@ -30,6 +30,7 @@ export class MediaTrackerSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
+	// ninja: minAppVersion is 1.13.0, so Path A is definitions only — display() would be a second UI to keep in sync.
 	getSettingDefinitions(): SettingDefinitionItem[] {
 		return [
 			{
@@ -60,6 +61,7 @@ export class MediaTrackerSettingTab extends PluginSettingTab {
 	}
 
 	getControlValue(key: string): unknown {
+		// ninja: we store vault root as ""; the 1.13 folder control represents root as "/".
 		if (key === "libraryFolder") {
 			const path = this.plugin.settings.libraryFolder;
 			return path === "" ? "/" : path;
