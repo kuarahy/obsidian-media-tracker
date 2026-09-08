@@ -10,7 +10,7 @@
 		"version": "node version-bump.mjs && git add manifest.json versions.json"
 	},
 	"keywords": [],
-	"license": "SEE LICENSE IN LICENSE.md",
+	"license": "MIT",
 	"devDependencies": {
 		"@types/node": "^22.15.17",
 		"esbuild": "0.25.5",
