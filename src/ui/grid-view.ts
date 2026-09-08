@@ -277,13 +277,15 @@ export class MediaTrackerView extends ItemView {
 			link.addEventListener("click", () => this.openFolder(segment.path));
 		});
 
-		const zoomOut = toolbar.createEl("button", {
+		// ninja: grouped so the pair wraps to a new line together instead of splitting apart.
+		const zoomGroup = toolbar.createDiv({ cls: "media-tracker-zoom-group" });
+		const zoomOut = zoomGroup.createEl("button", {
 			cls: "media-tracker-zoom",
 			text: "−",
 			attr: { "aria-label": "Zoom out" },
 		});
 		zoomOut.addEventListener("click", () => void this.zoom(1));
-		const zoomIn = toolbar.createEl("button", {
+		const zoomIn = zoomGroup.createEl("button", {
 			cls: "media-tracker-zoom",
 			text: "+",
 			attr: { "aria-label": "Zoom in" },
