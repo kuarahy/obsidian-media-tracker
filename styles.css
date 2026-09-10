@@ -44,6 +44,7 @@
 .media-tracker-title,
 .media-tracker-zoom {
 	padding: var(--size-2-2) var(--size-4-2);
+	border-radius: var(--radius-m);
 }
 
 .media-tracker-empty {
